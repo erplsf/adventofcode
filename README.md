@@ -4,4 +4,5 @@ The idea behind this repo is to run `scraper/scrape_languages.py` to generate li
 
 So, at 04 Dec, 2019 there was 121 languages fetched.
 
-Day 1: Lot #67 -> Rapira
+Day 1: Lot #67 -> [Rapira](https://en.wikipedia.org/wiki/Rapira)
+Old language, practically obsolete, found new implementation: https://github.com/freeduke33/rerap2
