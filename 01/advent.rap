@@ -1,5 +1,5 @@
 fun GET_FUEL(N)
-  return (N / 3) - 2
+  return (N // 3) - 2
 end
 
 output: "12 -> 4? ", GET_FUEL(12) = 2
@@ -18,20 +18,19 @@ for I to #PUZZLE do
 od
 
 output: "Puzze asnwer 1: ", SUM
-output: SUM, " -> 3367126? ", SUM = 3367126
+output: SUM, " == 3367126? ", SUM = 3367126
 
 SUM := 0
 MAP := <* *>
 
 for I to #PUZZLE do
-  ITEM := PUZZLE[i]
-  if index(ITEM, MAP) > 0 then
-    FUEL := MAP[ITEM]
-  else
-    FUEL := GET_FUEL(ITEM)
-    MAP[ITEM] := FUEL
-  fi
-  SUM := SUM + FUEL
+  ITEM := PUZZLE[I]
+  FUEL := GET_FUEL(ITEM)
+  WHILE FUEL > 0 do
+    SUM := SUM + FUEL
+    FUEL := GET_FUEL(FUEL)
+  od
 od
 
-output: SUM
+output: "Puzzle answer 2: ", SUM
+output: SUM, " == 5047796? ", SUM = 5047796
