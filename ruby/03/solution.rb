@@ -8,27 +8,26 @@ end
 
 def process_path(path)
   path = path.dup
-  v = [] # {x: num, y: range}
-  h = [] # {x: range, y: num}
+  r = [] # {x: range, y: num}
   pos = { x: 0, y: 0 }
   path.each_with_index do |segment, index|
     direction, distance = segment
     case direction
     when "U"
-      v << { index: index, step: distance, x: [pos[:x], pos[:x]], y: [pos[:y], pos[:y] + distance] }
+      r << { step: distance, x: [pos[:x], pos[:x]], y: [pos[:y], pos[:y] + distance] }
       pos[:y] = pos[:y] + distance
     when "D"
-      v << { index: index, step: distance, x: [pos[:x], pos[:x]], y: [pos[:y] - distance, pos[:y]] }
+      r << { step: distance, x: [pos[:x], pos[:x]], y: [pos[:y] - distance, pos[:y]] }
       pos[:y] = pos[:y] - distance
     when "L"
-      h << { index: index, step: distance, y: [pos[:y], pos[:y]], x: [pos[:x] - distance, pos[:x]] }
+      r << { step: distance, y: [pos[:y], pos[:y]], x: [pos[:x] - distance, pos[:x]] }
       pos[:x] = pos[:x] - distance
     when "R"
-      h << { index: index, step: distance, y: [pos[:y], pos[:y]], x: [pos[:x], pos[:x] + distance] }
+      r << { step: distance, y: [pos[:y], pos[:y]], x: [pos[:x], pos[:x] + distance] }
       pos[:x] = pos[:x] + distance
     end
   end
-  { h: h, v: v }
+  r
 end
 
 KM = {
@@ -38,72 +37,70 @@ KM = {
   y: :x,
 }
 
-def minimal_distance(w1, w2)
+def minimal_distance(paths)
   intersections = []
-  w1.each do |k, w1_segments|
-    op_k, _dir = KM[k]
-    w1_segments.each do |w1_segment|
-      w2[op_k].each do |w2_segment|
-        x1, x2 = w1_segment[:x]
-        y1, y2 = w1_segment[:y]
-        x1r = x1..x2
-        y1r = y1..y2
 
-        x3, x4 = w2_segment[:x]
-        y3, y4 = w2_segment[:y]
-        x2r = x3..x4
-        y2r = y3..y4
+  paths = paths.dup
+  p1, p2 = paths
 
-        if (!(w1_segment[:intersection] || w2_segment[:intersection]) &&
-            (x1r.cover?(x2r) || x2r.cover?(x1r)) &&
-            (y1r.cover?(y2r) || y2r.cover?(y1r)))
-          # mark as an intersection
-          w1_segment[:intersection] = true
-          w2_segment[:intersection] = true
+  p1.each_with_index do |p1_segment, p1_index|
+    p2.each_with_index do |p2_segment, p2_index|
+      x1, x2 = p1_segment[:x]
+      y1, y2 = p1_segment[:y]
+      x1r = x1..x2
+      y1r = y1..y2
 
-          px = if x1r.size == 1
-                 x1r.first
-               else
-                 x2r.first
-               end
-          py = if y1r.size == 1
-                 y1r.first
-               else
-                 y2r.first
-               end
+      x3, x4 = p2_segment[:x]
+      y3, y4 = p2_segment[:y]
+      x2r = x3..x4
+      y2r = y3..y4
 
-          if (x1 != x2)
-            w1_segment[:step] = w1_segment[:step] - (x2 - px)
-          else
-            w1_segment[:step] = w1_segment[:step] - (y2 - py)
-          end
+      if (!(p1_segment[:intersection] || p2_segment[:intersection]) &&
+          (x1r.cover?(x2r) || x2r.cover?(x1r)) &&
+          (y1r.cover?(y2r) || y2r.cover?(y1r)))
+        # mark as an intersection
+        p1_segment[:intersection] = true
+        p2_segment[:intersection] = true
 
-          if (x3 != x4)
-            w2_segment[:step] = w2_segment[:step] - (x4 - px)
-          else
-            w2_segment[:step] = w2_segment[:step] - (y4 - py)
-          end
+        p x1r, x1r.size, x1r.first, x2r.first
+        px = if x1r.size == 1
+               x1r.first
+             else
+               x2r.first
+             end
+        py = if y1r.size == 1
+               y1r.first
+             else
+               y2r.first
+             end
 
-          distance = px.abs + py.abs
-
-          intersections << { index_w1: w1_segment[:index], index_w2: w2_segment[:index], distance: distance }
+        if (x1r.size != 1)
+          #p x1r, p1_segment[:step], x2, px
+          p1_segment[:step] = p1_segment[:step] - (x2 - px)
+        else
+          p1_segment[:step] = p1_segment[:step] - (y2 - py)
         end
+
+        if (x2r.size != 1)
+          p2_segment[:step] = p2_segment[:step] - (x4 - px)
+        else
+          p2_segment[:step] = p2_segment[:step] - (y4 - py)
+        end
+
+        distance = px.abs + py.abs
+
+        intersections << { index_w1: p1_index, index_w2: p2_index, distance: distance }
       end
     end
   end
 
   # update distances (steps)
-  [w1, w2].each do |w|
-    w.each do |_k, w_segments|
-      w_segments.each do |w_segment|
-        # find previous segment
-        prev_segment = w_segments.select { |s| s[:index] == (w_segment[:index] - 1) }.first
-        p w_segments
-        raise
-        p w_segment[:index], prev_segment if w_segment[:index]
-        # update the current segment with sum of all previous steps
-        w_segment[:step] = w_segment[:step] + prev_segment[:step] if prev_segment
-      end
+  paths.each do |p|
+    p.each_with_index do |p_segment, p_index|
+      # find previous segment
+      prev_segment = p_index - 1 > 0 ? p[p_index - 1] : p[0]
+      # update the current segment with sum of all previous steps
+      p_segment[:step] = p_segment[:step] + prev_segment[:step] if prev_segment
     end
   end
 
@@ -112,20 +109,16 @@ def minimal_distance(w1, w2)
   end
 
   intersections.each do |intersection|
-    w1_segment = w1.values.flatten.select do |segment|
-      segment[:index] == intersection[:index_w1]
-    end.first
-
-    w2_segment = w2.values.flatten.select do |segment|
-      segment[:index] == intersection[:index_w2]
-    end.first
+    w1_segment = p1[intersection[:index_w1]]
+    w2_segment = p2[intersection[:index_w2]]
 
     intersection[:steps] = w1_segment[:step] + w2_segment[:step]
   end
 
-  #intersections.sort_by { |intersection| intersection[:steps] }
+  p paths
+  intersections.sort_by { |intersection| intersection[:steps] }
 
-  [q1w1, w2]
+  #paths
 end
 
 def read_file(filename)
