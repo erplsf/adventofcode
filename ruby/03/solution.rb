@@ -15,32 +15,46 @@ def process_path(path)
     case direction
     # REWRITE TO USE CORRECT DIRECTION OF RANGES (?)
     when "U"
-      r << { step: distance, x: pos[:x], y: pos[:y]..distance }
+      r << { step: distance, x: pos[:x], y: pos[:y]..pos[:y]+distance }
       pos[:y] = pos[:y] + distance
     when "D"
-      r << { step: distance, x: pos[:x], y: pos[:y]..-distance }
+      r << { step: distance, x: pos[:x], y: pos[:y]..pos[:y]-distance }
       pos[:y] = pos[:y] - distance
     when "L"
-      r << { step: distance, x: pos[:x]..-distance, y: pos[:y] }
+      r << { step: distance, x: pos[:x]..pos[:x]-distance, y: pos[:y] }
       pos[:x] = pos[:x] - distance
     when "R"
-      r << { step: distance, x: pos[:x]..distance, y: pos[:y] }
+      r << { step: distance, x: pos[:x]..pos[:x]+distance, y: pos[:y] }
       pos[:x] = pos[:x] + distance
     end
   end
   r
 end
 
-def intersects?(first_segment, second_segment)
-    x1, x2 = p1_segment[:x]
-    y1, y2 = p1_segment[:y]
+def unpack_coord(coord)
+  case coord
+  when Range
+    [coord.first, coord.last]
+  when Numeric
+    [coord, coord]
+  end
+end
+
+def intersects?(fs, ss)
+    x1, x2 = unpack_coord(fs[:x]).sort
+    y1, y2 = unpack_coord(fs[:y]).sort
+
+    x3, x4 = unpack_coord(ss[:x]).sort
+    y3, y4 = unpack_coord(ss[:y]).sort
+
     x1r = x1..x2
     y1r = y1..y2
 
-    x3, x4 = p2_segment[:x]
-    y3, y4 = p2_segment[:y]
     x2r = x3..x4
     y2r = y3..y4
+
+    px = nil
+    py = nil
 
     if ((x1r.cover?(x2r) || x2r.cover?(x1r)) &&
         (y1r.cover?(y2r) || y2r.cover?(y1r)))
@@ -55,14 +69,36 @@ def intersects?(first_segment, second_segment)
              y2r.first
            end
     end
+
+    if px && py
+      [px, py]
+    else
+      nil
+    end
 end
 
-KM = {
-  h: [:v, :x],
-  v: [:h, :y],
-  x: :y,
-  y: :x,
-}
+def calculate_distance(segment, px, py)
+  sx = segment[:x]
+  sy = segment[:y]
+  if sx.is_a? Range
+    (px - unpack_coord(sx).first).abs
+  else
+    (py - unpack_coord(sy).first).abs
+  end
+end
+
+def distance_to_segment(path, original_index, target_index)
+  total_distance = 0
+  current_index = original_index
+  while true
+    segment = path[current_index]
+    distance = segment[:step]
+    total_distance += distance
+    current_index -= 1
+    break if current_index <= target_index
+  end
+  total_distance
+end
 
 def minimal_distance(paths)
   intersections = []
@@ -72,85 +108,55 @@ def minimal_distance(paths)
 
   p1.each_with_index do |p1_segment, p1_index|
     p2.each_with_index do |p2_segment, p2_index|
-      x1, x2 = p1_segment[:x]
-      y1, y2 = p1_segment[:y]
-      x1r = x1..x2
-      y1r = y1..y2
+      result = intersects?(p1_segment, p2_segment)
+      
+      # skip not an intersection
+      next unless result
+      px, py = result
 
-      x3, x4 = p2_segment[:x]
-      y3, y4 = p2_segment[:y]
-      x2r = x3..x4
-      y2r = y3..y4
+      # skip the starting point
+      next if px == 0 && py == 0
 
-      if ((x1r.cover?(x2r) || x2r.cover?(x1r)) &&
-          (y1r.cover?(y2r) || y2r.cover?(y1r)))
-        px = if x1r.size == 1
-               x1r.first
-             else
-               x2r.first
-             end
-        py = if y1r.size == 1
-               y1r.first
-             else
-               y2r.first
-             end
+      # mark as an intersection
+      p1_segment[:intersections] ||= []
+      p1_segment[:intersections] << [x: px, y: py, distance: calculate_distance(p1_segment, px, py), opposite_index: p2_index]
 
-        # skip the starting point
-        next if px == 0 && py == 0
+      p2_segment[:intersections] ||= []
+      p2_segment[:intersections] << [x: px, y: py, distance: calculate_distance(p2_segment, px, py), opposite_index: p1_index]
 
-        p "px, py: #{px} #{py}"
+      distance = px.abs + py.abs
 
-        # mark as an intersection
-        p1_segment[:intersection] = true
-        p2_segment[:intersection] = true
-
-        # REWRITE TO CORRECTLY HANDLE DIRECTIONS (!)
-        p "p1_segment[:step] before: #{p1_segment[:step]}", p1_segment, p2_segment
-        if (x1r.size == 1)
-          p1_segment[:step] = py
-        else
-          p1_segment[:step] = px
-        end
-        p "p1_segment[:step] after: #{p1_segment[:step]}"
-
-        p "p2_segment[:step] before: #{p2_segment[:step]}", p1_segment, p2_segment
-        if (x2r.size == 1)
-          p2_segment[:step] = py
-        else
-          p2_segment[:step] = px
-        end
-        p "p2_segment[:step] before: #{p2_segment[:step]}"
-
-        distance = px.abs + py.abs
-
-        intersections << { index_w1: p1_index, index_w2: p2_index, distance: distance }
-      end
+      intersections << { index_w1: p1_index, index_w2: p2_index, distance: distance }
     end
   end
-
-  # update distances (steps)
-  #paths.each do |p|
-    #p.each_with_index do |p_segment, p_index|
-      ## skip the starting point
-      #next if p_index == 0
-      ## find previous segment
-      #prev_segment = p[p_index - 1]
-      ## update the current segment with sum of all previous steps
-      #p "#{p_index} #{p_segment[:step]} #{prev_segment[:step]}"
-      #p_segment[:step] = p_segment[:step] + prev_segment[:step] if prev_segment
-      #p "#{p_index} #{p_segment[:step]}"
-    #end
-  #end
+  
+  pp paths
 
   intersections.select! do |intersection|
     intersection[:distance] > 0
   end
 
-  intersections.each do |intersection|
-    w1_segment = p1[intersection[:index_w1]]
-    w2_segment = p2[intersection[:index_w2]]
+  # update steps required to reach each segment
 
-    intersection[:steps] = w1_segment[:step] + w2_segment[:step]
+  # calculate distance for each intersection
+  intersections.each do |intersection|
+    total_steps = 0
+
+    index = intersection[:index_w1]
+    while true
+      total_steps += paths[0][index][:step]
+      index -= 1
+      break if index < 0
+    end
+
+    index = intersection[:index_w2]
+    while true
+      total_steps += paths[1][index][:step]
+      index -= 1
+      break if index < 0
+    end
+
+    intersection[:steps] = total_steps
   end
 
   pp paths
