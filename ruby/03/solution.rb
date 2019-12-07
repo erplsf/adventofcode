@@ -15,20 +15,46 @@ def process_path(path)
     case direction
     # REWRITE TO USE CORRECT DIRECTION OF RANGES (?)
     when "U"
-      r << { step: distance, x: [pos[:x], pos[:x]], y: [pos[:y], pos[:y] + distance] }
+      r << { step: distance, x: pos[:x], y: pos[:y]..distance }
       pos[:y] = pos[:y] + distance
     when "D"
-      r << { step: distance, x: [pos[:x], pos[:x]], y: [pos[:y] - distance, pos[:y]] }
+      r << { step: distance, x: pos[:x], y: pos[:y]..-distance }
       pos[:y] = pos[:y] - distance
     when "L"
-      r << { step: distance, y: [pos[:y], pos[:y]], x: [pos[:x] - distance, pos[:x]] }
+      r << { step: distance, x: pos[:x]..-distance, y: pos[:y] }
       pos[:x] = pos[:x] - distance
     when "R"
-      r << { step: distance, y: [pos[:y], pos[:y]], x: [pos[:x], pos[:x] + distance] }
+      r << { step: distance, x: pos[:x]..distance, y: pos[:y] }
       pos[:x] = pos[:x] + distance
     end
   end
   r
+end
+
+def intersects?(first_segment, second_segment)
+    x1, x2 = p1_segment[:x]
+    y1, y2 = p1_segment[:y]
+    x1r = x1..x2
+    y1r = y1..y2
+
+    x3, x4 = p2_segment[:x]
+    y3, y4 = p2_segment[:y]
+    x2r = x3..x4
+    y2r = y3..y4
+
+    if ((x1r.cover?(x2r) || x2r.cover?(x1r)) &&
+        (y1r.cover?(y2r) || y2r.cover?(y1r)))
+      px = if x1r.size == 1
+             x1r.first
+           else
+             x2r.first
+           end
+      py = if y1r.size == 1
+             y1r.first
+           else
+             y2r.first
+           end
+    end
 end
 
 KM = {
