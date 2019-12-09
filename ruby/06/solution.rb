@@ -6,17 +6,39 @@ def find_node(tree, name, depth = 0, ancestors = [])
     [tree, depth, ancestors]
   else
     if tree[:objects] && !tree[:objects].empty?
-      tree[:objects].map { |o| find_node(o, name, depth + 1, ancestors.push(tree[:name])) }.select { |o| o && o[0] }.first
+      tree[:objects].map { |o| find_node(o, name, depth + 1, ancestors + [tree[:name]]) }.select { |o| o && o[0] }.first
     else
       [nil, depth, ancestors]
     end
   end
 end
 
-def distance(tree, fn, sn)
+def number_of_transfers(tree, fn, sn)
   _n, _d, fa = find_node(tree, fn)
   _n, _d, sa = find_node(tree, sn)
-  [fa, sa]
+  fa.reverse!
+  sa.reverse!
+
+  #p fa, sa
+
+  index = 0
+  count = [0, 0]
+  found = [false, false]
+
+  while !found.all?
+    if sa.include?(fa[index])
+      found[0] = true
+    else
+      count[0] += 1
+    end
+    if fa.include?(sa[index])
+      found[1] = true
+    else
+      count[1] += 1
+    end
+    index += 1
+  end
+  count.sum
 end
 
 def assign_child_to_map(system, parent_name, child_name)
