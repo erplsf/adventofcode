@@ -18,6 +18,31 @@ def find_max(map)
   process_map(map).max_by { |a| a[0] }
 end
 
+def find_200(map)
+  index, _ = find_max(map)
+  center = map[index]
+  neighbors = map - [center]
+  origin, _location, neighbors = move_origin(center, neighbors)
+  final_list = neighbors.group_by do |target|
+    Math.atan2(*target)
+  end.sort.map do |target_group|
+    #binding.pry
+    target_group.last.sort_by do |target|
+      distance_between(target)
+    end
+  end
+  asteroid_count = 0
+  final_list.cycle do |target_group|
+    if target_group.empty?
+      final_list.delete(target_group)
+    else
+      asteroid = target_group.shift
+      asteroid_count += 1
+      return asteroid if asteroid_count == 200
+    end
+  end
+end
+
 def process_map(map)
   map.map { |location| [visible_neighbors(location, map - [location]), location] }
 end
@@ -62,6 +87,6 @@ def move_origin(location, neighbors)
   [[x, y], [0, 0], neighbors.map { |target| [target[0] - x, target[1] - y] }]
 end
 
-def distance_between(fa, sa)
+def distance_between(fa, sa=[0,0])
   Math.sqrt((sa[0] - fa[0])**2 + (sa[1] - fa[1])**2)
 end
