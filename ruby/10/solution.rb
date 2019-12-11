@@ -38,7 +38,7 @@ def find_200(map)
     else
       asteroid = target_group.shift
       asteroid_count += 1
-      return asteroid if asteroid_count == 200
+      return move_origin(origin, [asteroid]).last.last if asteroid_count == 200
     end
   end
 end
@@ -84,7 +84,7 @@ end
 
 def move_origin(location, neighbors)
   x, y = location
-  [[x, y], [0, 0], neighbors.map { |target| [target[0] - x, target[1] - y] }]
+  [[-x, -y], [0, 0], neighbors.map { |target| [target[0] - x, target[1] - y] }]
 end
 
 def distance_between(fa, sa=[0,0])
