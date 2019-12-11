@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-def read_map(string)
+def parse_map(string)
   map = []
   string.split.each_with_index do |row, y|
     row.split('').each_with_index do |p, x|
@@ -10,16 +10,36 @@ def read_map(string)
   map
 end
 
+def read_map(string)
+  string.split
+end
+
+def find_max(map)
+  process_map(map).max_by { |a| a[0] }
+end
+
+def process_map(map)
+  map.map { |location| [visible_neighbors(location, map - [location]), location] }
+end
+
 def visible_neighbors(location, neighbors)
-  #_origin_location, location, neighbors = move_origin(location, neighbors)
-  sorted = neighbors.sort { |target| distance_between(location, target) }
-  # find the closest asteroid that is located at coprime coordinates and remove all other asteroids that have the same minimized form
+  _origin_location, _location, neighbors = move_origin(location.dup, neighbors.dup)
+  neighbors.map { |target| minimize(target) }.uniq.count
+end
+
+def draw_map(map, original_map)
+  om = original_map.dup
+  map.each do |m, coords|
+    x, y = coords
+    om[y][x] = m.to_s
+  end
+  puts om
 end
 
 def minimize(target)
   x, y = target
-  d = gcd(x, y)
-  [x/d, y/d]
+  d = gcd(x, y).abs
+  [(x / d), (y / d)]
 end
 
 def coprime?(target)
