@@ -1,4 +1,4 @@
-use std::fs;
+use adventofcode::lib::parse_file;
 
 fn parse_level(string: &String) -> (i32, usize) {
     let mut level = 0;
@@ -18,7 +18,7 @@ fn parse_level(string: &String) -> (i32, usize) {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
-    let contents = fs::read_to_string("input.txt")?;
+    let contents = parse_file().unwrap();
     let (final_level, basement_position) = parse_level(&contents);
     dbg!(final_level, basement_position);
     Ok(())
