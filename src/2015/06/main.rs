@@ -4,14 +4,20 @@ use std::ops::RangeInclusive;
 const SIZE: usize = 1000;
 
 type Lights = [[bool; SIZE]; SIZE];
-type BrightLights = [[usize; SIZE]; SIZE];
+
+struct BrightLights {
+    grid: Box<[Box<[usize]>]>
+}
+
+impl BrightLights {
+    fn new() -> Self {
+        let grid = vec![vec![0 as usize; SIZE].into_boxed_slice(); SIZE].into_boxed_slice();
+        Self { grid: grid }
+    }
+}
 
 const fn init_lights() -> Lights {
     [[false; SIZE]; SIZE]
-}
-
-const fn init_bright_lights() -> BrightLights {
-    [[0; SIZE]; SIZE]
 }
 
 #[derive(Debug,PartialEq)]
@@ -46,12 +52,12 @@ fn control_lights(ligths: &mut Lights, command: &Command) -> () {
 }
 
 fn control_bright_lights(ligths: &mut BrightLights, command: &Command) -> () {
-    for sub in ligths[command.row_range.clone()].iter_mut() {
+    for sub in ligths.grid[command.row_range.clone()].iter_mut() {
         for element in sub[command.column_range.clone()].iter_mut() {
             *element = match command.operation {
-                Operation::On => *element + 1,
-                Operation::Toggle => *element + 2,
-                Operation::Off => *element - 1
+                Operation::On => element.saturating_add(1),
+                Operation::Toggle => element.saturating_add(2),
+                Operation::Off => element.saturating_sub(1)
             };
         }
     }
@@ -71,7 +77,7 @@ fn count_turned_lights(lights: &Lights) -> usize {
 
 fn count_turned_bright_lights(lights: &BrightLights) -> usize {
     let mut count = 0;
-    for row in lights.iter() {
+    for row in lights.grid.iter() {
         for column in row.iter() {
             count += column;
         }
@@ -128,16 +134,17 @@ fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     assert_eq!(parse_line("turn off 499,499 through 500,500"), Command::new(Operation::Off, 499..=500 as usize, 499..=500 as usize));
 
     lights = init_lights();
-//    let mut bright_lights = init_bright_lights();
+    let mut bright_lights = BrightLights::new();
     let contents = parse_file().unwrap();
     let commands = process_file(&contents);
 
     for command in commands {
         control_lights(&mut lights, &command);
-    //    control_bright_lights(&mut bright_lights, &command);
+        control_bright_lights(&mut bright_lights, &command);
     }
 
     dbg!(count_turned_lights(&lights));
+    dbg!(count_turned_bright_lights(&bright_lights));
     
     Ok(())
 }
