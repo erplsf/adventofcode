@@ -14,8 +14,27 @@ impl Board {
         self.board.insert(name.to_string(), wire);
     }
 
-    fn get_mut(&mut self, name: &str) -> &mut Wire {
-        self.board.get_mut(name).unwrap()
+    fn value(&self, name: &str) -> Option<u16> {
+        match self.board.get(name) {
+            Some(wire) => wire.value,
+            None => None
+        }
+    }
+
+    fn resolve(&self, name: &str) -> u16 {
+        let wire = self.board.get(name).unwrap();
+        match wire.value {
+            Some(value) => value,
+            None => { // implement the recursive input-loop stuff here
+                let computed_inputs: Vec<u16> = wire.inputs.as_ref().unwrap().into_iter().map(|name| {
+                    self.resolve(&name)
+                }).collect();
+                let wire = self.board.get(name).unwrap();
+                let result = wire.compute(computed_inputs);
+                // wire.value = Some(result);
+                result
+            }
+        }
     }
 }
 
@@ -50,13 +69,54 @@ impl Wire {
             panic!("Unreachable branch!");
         }
     }
+
+    fn compute(&self, mut inputs:Vec<u16>) -> u16 {
+        match &self.gate {
+            None => panic!("No gate - no way to compute!"),
+            Some(op) => {
+                match op {
+                    Gate::OR => inputs[0] | inputs[1],
+                    Gate::AND => inputs[0] & inputs[1],
+                    Gate::NOT => !inputs[0],
+                    Gate::LSHIFT(shift) => inputs[0] << shift,
+                    Gate::RSHIFT(shift) => inputs[0] >> shift
+                }
+            }
+        }
+    }
+}
+
+// enum ParseResult {
+//     Value(u8),
+    
+// }
+
+fn parse_line(line: &str) -> Wire {
+    let mut sides: Vec<&str> = line.split("->").collect();
+    let name = sides[0].trim();
+    let mut expression = sides[1].trim().split(' ').collect::<Vec<&str>>();
+    match expression.len() {
+        1 => Wire::new(None, None, Some(expression[0].parse::<u16>().unwrap())),
+        2 => Wire::new(Some(vec![expression[1].to_string()]), Some(Gate::NOT), None),
+        3 => {
+            let (left, right) = (expression[0].to_string(), expression[1].to_string());
+            match expression[1] {
+                "AND" => Wire::new(Some(vec![left, right]), Some(Gate::AND), None),
+                "OR" => Wire::new(Some(vec![left, right]), Some(Gate::OR), None),
+                "LSHIFT" => Wire::new(Some(vec![left]), Some(Gate::LSHIFT(right.parse().unwrap())), None),
+                "RSHIFT" => Wire::new(Some(vec![left]), Some(Gate::RSHIFT(right.parse().unwrap())), None),
+                _ => panic!("Unsupported operation found!")
+            }
+        },
+        _ => panic!("Unsupported string found!")
+        }
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
-    let mut b = Board::new();
-    let w = Wire::new(None, Some(Box::new(|| 15 )));
-    b.insert("a", w);
-    let w = b.get_mut("a");
-    dbg!(w.value());
+    let contents = parse_file().unwrap();
+    for line in contents.lines() {
+        parse_line(line);
+    }
+    let mut board = Board::new();
     Ok(())
 }
