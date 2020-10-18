@@ -25,8 +25,7 @@ impl Board {
         // if we parsed it successfully, return it early
         let parse = name.parse::<u16>();
         if parse.is_ok() {
-            let val = parse.unwrap();
-            return val
+            return parse.unwrap()
         }
         
         // otherwise, lookup number in the registry and check if we already have value for it
