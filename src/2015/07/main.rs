@@ -23,13 +23,10 @@ impl Board {
         // try checking if we got a number to lookup.
         // possible in the case if input to a recursive function is a parse-able string.
         // if we parsed it successfully, return it early
-        let parse = name.parse::<u16>();
-        if parse.is_ok() {
-            return parse.unwrap()
-        }
+        if let Ok(parsed) = name.parse::<u16>() { return parsed }
         
         // otherwise, lookup number in the registry and check if we already have value for it
-        let wire = self.board.get(name).unwrap();
+        let wire = self.board.get(name).expect("Can't resolve - supplied wire is not in the registry.");
         match wire.value {
             Some(value) => value, // if yes, return it early
             None => {
