@@ -1,7 +1,7 @@
 use adventofcode::lib::parse_file;
 use std::collections::HashMap;
 
-#[derive(Debug,PartialEq,Eq)]
+#[derive(Debug)]
 struct Board {
     board: HashMap<String, Wire>
 }
@@ -19,42 +19,35 @@ impl Board {
         self.board.get_mut(name)
     }
 
-    fn value(&self, name: &str) -> Option<u16> {
-        match self.board.get(name) {
-            Some(wire) => wire.value,
-            None => None
-        }
-    }
-
     fn resolve(&mut self, name: &str) -> u16 {
-        // try checking if we got a number. if we parsed it successfully, return it early
+        // try checking if we got a number to lookup.
+        // possible in the case if input to a recursive function is a parse-able string.
+        // if we parsed it successfully, return it early
         let parse = name.parse::<u16>();
         if parse.is_ok() {
             let val = parse.unwrap();
-            // println!("parsed num {}", &val);
             return val
         }
         
-        // println!("resolve {}", name);
+        // otherwise, lookup number in the registry and check if we already have value for it
         let wire = self.board.get(name).unwrap();
         match wire.value {
-            Some(value) => value,
-            None => { // implement the recursive input-loop stuff here
-                // println!("computing for {}", &name);
+            Some(value) => value, // if yes, return it early
+            None => {
+                // otherwise, resolve (recursively) all inputs and compute it
                 let computed_inputs: Vec<u16> = wire.inputs.clone().unwrap().into_iter().map(|name| { // .clone() is the most important thing here - it allows us to satisfy borrow checker
                     self.resolve(&name)
                 }).collect();
-                // dbg!("cpi", &computed_inputs);
-                let wire = self.board.get_mut(name).unwrap();
-                let result = wire.compute(computed_inputs);
-                wire.value = Some(result);
-                return result
+                let wire = self.board.get_mut(name).unwrap(); // rebind to the wire, now mutably, as we want to replace it's value later
+                let result = wire.compute(computed_inputs); // compute the value with resolved inputs
+                wire.value = Some(result); // set the value
+                return result // return it
             }
         }
     }
 }
 
-#[derive(Debug,PartialEq,Eq,Clone)]
+#[derive(Debug,Clone,Copy)]
 enum Gate {
     OR,
     AND,
@@ -64,7 +57,7 @@ enum Gate {
     DIRECT
 }
 
-#[derive(Debug,PartialEq,Eq,Clone)]
+#[derive(Debug,Clone)]
 struct Wire {
     inputs: Option<Vec<String>>,
     gate: Option<Gate>,
@@ -76,7 +69,7 @@ impl Wire {
         if value.is_some() || (gate.is_some() && inputs.is_some()) {
             Self { inputs: inputs, gate: gate, value: value }
         } else {
-            panic!("Either value or inputs and gate must contain value.")
+            panic!("Either value or inputs AND gate must contain value.")
         }
     }
 
@@ -97,12 +90,11 @@ impl Wire {
     }
 }
 
-// TODO: Fix parsing - AND/OR can also have numbers as inputs
 fn parse_line(line: &str) -> (&str, Wire) {
     let sides: Vec<&str> = line.split("->").collect();
     let name = sides[1].trim();
     let expression = sides[0].trim().split(' ').collect::<Vec<&str>>();
-    let wire = match expression.len() {
+    let wire = match expression.len() { // length of the split expression on the left
         1 => { // value or reference to another wire
             match expression[0].parse::<u16>() {
                 Ok(val) => Wire::new(None, None, Some(val)),
@@ -120,25 +112,24 @@ fn parse_line(line: &str) -> (&str, Wire) {
                 _ => panic!("Unsupported operation found!")
             }
         },
-        _ => panic!("Unsupported string found!")
+        _ => panic!("Unsupported expression on the left found!")
     };
-    //dbg!(&name, &wire);
     (name, wire)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
-    let mut board = Board::new();
+    let mut first_board = Board::new();
     let mut second_board = Board::new();
     
     let contents = parse_file().unwrap();
     for line in contents.lines() {
         let (name, wire) = parse_line(line);
-        board.insert(name, wire.clone());
+        first_board.insert(name, wire.clone());
         second_board.insert(name, wire);
     }
-    let a = board.resolve("a");
-    dbg!(a);
-    second_board.get_mut("b").unwrap().value = Some(a);
+    dbg!(first_board.resolve("a"));
+    let a = first_board.resolve("a");
+    second_board.get_mut("b").unwrap().value = Some(a); // set the "b"-gate value to the "a" value of the first run
     dbg!(second_board.resolve("a"));
     Ok(())
 }
