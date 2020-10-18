@@ -1,6 +1,7 @@
 use adventofcode::lib::parse_file;
 use std::collections::HashMap;
 
+#[derive(Debug,PartialEq,Eq)]
 struct Board {
     board: HashMap<String, Wire>
 }
@@ -14,6 +15,10 @@ impl Board {
         self.board.insert(name.to_string(), wire);
     }
 
+    fn get_mut(&mut self, name: &str) -> Option<&mut Wire> {
+        self.board.get_mut(name)
+    }
+
     fn value(&self, name: &str) -> Option<u16> {
         match self.board.get(name) {
             Some(wire) => wire.value,
@@ -21,31 +26,45 @@ impl Board {
         }
     }
 
-    fn resolve(&self, name: &str) -> u16 {
+    fn resolve(&mut self, name: &str) -> u16 {
+        // try checking if we got a number. if we parsed it successfully, return it early
+        let parse = name.parse::<u16>();
+        if parse.is_ok() {
+            let val = parse.unwrap();
+            // println!("parsed num {}", &val);
+            return val
+        }
+        
+        // println!("resolve {}", name);
         let wire = self.board.get(name).unwrap();
         match wire.value {
             Some(value) => value,
             None => { // implement the recursive input-loop stuff here
-                let computed_inputs: Vec<u16> = wire.inputs.as_ref().unwrap().into_iter().map(|name| {
+                // println!("computing for {}", &name);
+                let computed_inputs: Vec<u16> = wire.inputs.clone().unwrap().into_iter().map(|name| { // .clone() is the most important thing here - it allows us to satisfy borrow checker
                     self.resolve(&name)
                 }).collect();
-                let wire = self.board.get(name).unwrap();
+                // dbg!("cpi", &computed_inputs);
+                let wire = self.board.get_mut(name).unwrap();
                 let result = wire.compute(computed_inputs);
-                // wire.value = Some(result);
-                result
+                wire.value = Some(result);
+                return result
             }
         }
     }
 }
 
+#[derive(Debug,PartialEq,Eq,Clone)]
 enum Gate {
     OR,
     AND,
     NOT,
     LSHIFT(u8),
-    RSHIFT(u8)
+    RSHIFT(u8),
+    DIRECT
 }
 
+#[derive(Debug,PartialEq,Eq,Clone)]
 struct Wire {
     inputs: Option<Vec<String>>,
     gate: Option<Gate>,
@@ -60,17 +79,8 @@ impl Wire {
             panic!("Either value or inputs and gate must contain value.")
         }
     }
-    
-    fn value(&mut self) -> u16 {
-        // if there is static value, or precomputed - return it
-        if let Some(value) = self.value {
-            return value
-        } else {
-            panic!("Unreachable branch!");
-        }
-    }
 
-    fn compute(&self, mut inputs:Vec<u16>) -> u16 {
+    fn compute(&self, inputs:Vec<u16>) -> u16 {
         match &self.gate {
             None => panic!("No gate - no way to compute!"),
             Some(op) => {
@@ -79,27 +89,29 @@ impl Wire {
                     Gate::AND => inputs[0] & inputs[1],
                     Gate::NOT => !inputs[0],
                     Gate::LSHIFT(shift) => inputs[0] << shift,
-                    Gate::RSHIFT(shift) => inputs[0] >> shift
+                    Gate::RSHIFT(shift) => inputs[0] >> shift,
+                    Gate::DIRECT => inputs[0]
                 }
             }
         }
     }
 }
 
-// enum ParseResult {
-//     Value(u8),
-    
-// }
-
-fn parse_line(line: &str) -> Wire {
-    let mut sides: Vec<&str> = line.split("->").collect();
-    let name = sides[0].trim();
-    let mut expression = sides[1].trim().split(' ').collect::<Vec<&str>>();
-    match expression.len() {
-        1 => Wire::new(None, None, Some(expression[0].parse::<u16>().unwrap())),
+// TODO: Fix parsing - AND/OR can also have numbers as inputs
+fn parse_line(line: &str) -> (&str, Wire) {
+    let sides: Vec<&str> = line.split("->").collect();
+    let name = sides[1].trim();
+    let expression = sides[0].trim().split(' ').collect::<Vec<&str>>();
+    let wire = match expression.len() {
+        1 => { // value or reference to another wire
+            match expression[0].parse::<u16>() {
+                Ok(val) => Wire::new(None, None, Some(val)),
+                Err(_) => Wire::new(Some(vec![expression[0].to_string()]), Some(Gate::DIRECT), None)
+            }
+        },
         2 => Wire::new(Some(vec![expression[1].to_string()]), Some(Gate::NOT), None),
         3 => {
-            let (left, right) = (expression[0].to_string(), expression[1].to_string());
+            let (left, right) = (expression[0].to_string(), expression[2].to_string());
             match expression[1] {
                 "AND" => Wire::new(Some(vec![left, right]), Some(Gate::AND), None),
                 "OR" => Wire::new(Some(vec![left, right]), Some(Gate::OR), None),
@@ -109,14 +121,24 @@ fn parse_line(line: &str) -> Wire {
             }
         },
         _ => panic!("Unsupported string found!")
-        }
+    };
+    //dbg!(&name, &wire);
+    (name, wire)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
+    let mut board = Board::new();
+    let mut second_board = Board::new();
+    
     let contents = parse_file().unwrap();
     for line in contents.lines() {
-        parse_line(line);
+        let (name, wire) = parse_line(line);
+        board.insert(name, wire.clone());
+        second_board.insert(name, wire);
     }
-    let mut board = Board::new();
+    let a = board.resolve("a");
+    dbg!(a);
+    second_board.get_mut("b").unwrap().value = Some(a);
+    dbg!(second_board.resolve("a"));
     Ok(())
 }
