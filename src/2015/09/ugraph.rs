@@ -1,79 +1,54 @@
-use core::cell::RefCell;
-use std::collections::HashMap;
-use std::rc::Weak;
-use std::rc::Rc;
-
-#[derive(Debug)]
-pub struct Node {
-    pub name: String,
-    pub edges: RefCell<Vec<Weak<Edge>>>
-}
-
-impl Node {
-    pub fn new(name: String) -> Self {
-        Self {
-            name: name,
-            edges: RefCell::new(vec![])
-        }
-    }
-
-    pub fn edges(&self) -> Vec<Rc<Edge>> {
-        let mut edges: Vec<Rc<Edge>> = self.edges.borrow().iter().map(|weak_edge| {
-            weak_edge.upgrade().unwrap()
-        }).collect();
-        edges.sort_by(|a, b| a.weight.cmp(&b.weight));
-        edges
-    }
-}
-
-#[derive(Debug)]
-pub struct Edge {
-    pub weight: usize,
-    pub nodes: (Rc<Node>, Rc<Node>)
-}
-
-impl Edge {
-    pub fn new(weight: usize, nodes: (Rc<Node>, Rc<Node>)) -> Self {
-        Self {
-            weight: weight,
-            nodes: nodes
-        }
-    }
-}
+// use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct UGraph {
-    nodes: HashMap<String, Rc<Node>>,
-    edges: Vec<Rc<Edge>>
+    nodes: Vec<String>,
+    capacity: usize,
+    distance_matrix: Vec<usize>
 }
 
 impl UGraph {
-    pub fn new() -> Self {
+    pub fn new(capacity: usize) -> Self {
         Self {
-            nodes: HashMap::new(),
-            edges: vec![]
+            nodes: vec![],
+            capacity: capacity,
+            distance_matrix: vec![0; capacity * capacity]
         }
     }
 
-    pub fn insert_node(&mut self, name: &str) -> Rc<Node> {
-        let node = Rc::new(Node::new(name.to_string()));
-        let clone = Rc::clone(&node);
-        self.nodes.insert(name.to_string(), node);
-        clone
+    pub fn insert_node(&mut self, name: &str) -> usize {
+        self.get_index(name).unwrap_or_else(|| {
+            let current_len = self.nodes.len();
+            if current_len == self.capacity {
+                panic!("can't insert more than capacity")
+            }
+            self.nodes.push(name.to_string());
+            current_len
+        })
     }
 
-    pub fn insert_edge(&mut self, edge: Rc<Edge>) {
-        let (f, s) = &edge.nodes;
-        f.edges.borrow_mut().push(Rc::downgrade(&edge));
-        s.edges.borrow_mut().push(Rc::downgrade(&edge));
-        self.edges.push(edge)
+    fn extend_matrix(&mut self) {
+        let new_matrix = vec![0]
     }
 
-    pub fn get_node(&self, name: &str) -> Option<Rc<Node>> {
-        self.nodes.get(name).and_then(|node| Some(Rc::clone(node)))
+    fn get_index(&self, name: &str) -> Option<usize> {
+        self.nodes.iter().position(|n| n == name)
     }
 
-    pub fn ham_path_length(&mut self) -> usize {
-        0
+    fn compute_indices(&self, row: usize, column: usize) -> usize {
+        row * self.capacity + column
+    }
+
+    pub fn insert_edge(&mut self, (left, right): (usize, usize), weight: usize) {
+        dbg!(left, right);
+        if left <= self.nodes.len() && right <= self.nodes.len() {
+            let li = self.compute_indices(left, right);
+            let ri = self.compute_indices(right, left);
+            dbg!(li, ri);
+            self.distance_matrix[li] = weight;
+            self.distance_matrix[ri] = weight;
+        } else {
+            panic!("shit")
+        }
     }
 }
