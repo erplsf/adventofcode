@@ -14,32 +14,36 @@ fn parse_line(line: &str) -> (&str, &str, usize) {
 
 fn parse_string(string: &str) -> UGraph {
     let mut cities = HashSet::new();
-    let mut parsed = vec![];
-    for line in string.lines() {
-        let result = parse_line(line);
+    string.lines().fold(vec![], |mut vec, x| {
+        let result = parse_line(x);
         cities.insert(result.0);
         cities.insert(result.1);
-        parsed.push(result);        
-    }
-    let mut graph = UGraph::new(cities.len());
-    graph
+        vec.push(result);
+        vec                        
+    }).iter().fold(UGraph::new(cities.len() + 1), |mut graph, x| {
+        let zi = graph.insert_node("zero");
+        let fi = graph.insert_node(x.0);
+        let ti = graph.insert_node(x.1);
+        graph.insert_edge((fi, ti), x.2);
+        graph.insert_edge((fi, zi), 0);
+        graph.insert_edge((ti, zi), 0);
+        graph
+    })
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     // test case
-    let mut graph = UGraph::new(3);
-    parse_line("London to Dublin = 464");
-    parse_line("London to Belfast = 518");
-    parse_line("Dublin to Belfast = 141");
-    debug_assert_eq!(graph.held_karp(), 605 as usize);
+    let test = "London to Dublin = 464\n\
+                London to Belfast = 518\n\
+                Dublin to Belfast = 141";
+    let graph = parse_string(test);
+    debug_assert_eq!(graph.held_karp(Goal::Min), 605 as usize);
+    debug_assert_eq!(graph.held_karp(Goal::Max), 982 as usize);
 
-    /*let mut graph = UGraph::new();
     let contents = parse_file().unwrap();
-    for line in contents.lines() {
-        parse_line(line, &mut graph);
-    }*/
-
-    // let mut graph = UGraph::new();
+    let graph = parse_string(&contents);
+    dbg!(graph.held_karp(Goal::Min));
+    dbg!(graph.held_karp(Goal::Max));
     
     Ok(())
 }

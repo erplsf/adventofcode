@@ -37,12 +37,9 @@ impl UGraph {
     }
 
     pub fn insert_edge(&mut self, (left, right): (usize, usize), weight: usize) {
-        dbg!(self.nodes.len());
-        dbg!(left, right);
         if left <= self.nodes.len() && right <= self.nodes.len() {
             let li = self.compute_indices(left, right);
             let ri = self.compute_indices(right, left);
-            dbg!(li, ri);
             self.distance_matrix[li] = weight;
             self.distance_matrix[ri] = weight;
         } else {
@@ -50,7 +47,7 @@ impl UGraph {
         }
     }
 
-    pub fn held_karp(&self) -> usize {
+    pub fn held_karp(&self, goal: Goal) -> usize {
         let n = self.nodes.len();
         let mut c = HashMap::new();
         for k in 1..n {
@@ -70,16 +67,19 @@ impl UGraph {
 
                     let mut res = vec![];
                     for m in &subset {
-                        let index = self.compute_indices(*m, *k);
                         if *m == 0 || *m == *k {
                             continue
                         }
+                        let index = self.compute_indices(*m, *k);
                         res.push(
                             (c.get(&(prev, *m)).unwrap().0 + self.distance_matrix[index], *m)
                         );
                     }
-                    let min = res.iter().min_by(|x, y| x.0.cmp(&y.0)).unwrap();
-                    c.insert((bits, *k), *min);
+                    let val = match &goal {
+                        Goal::Min => res.iter().min_by(|x, y| x.0.cmp(&y.0)).unwrap(),
+                        Goal::Max => res.iter().max_by(|x, y| x.0.cmp(&y.0)).unwrap()
+                    };
+                    c.insert((bits, *k), *val);
                 }
             }
         }
@@ -89,13 +89,22 @@ impl UGraph {
         let mut res = vec![];
 
         for k in 1..n {
+            let index = self.compute_indices(k, 0);
             res.push(
-                (c.get(&(bits, k)).unwrap().0, k)
+                (c.get(&(bits, k)).unwrap().0 + self.distance_matrix[index], k)
             )
         }
 
-        let min = res.iter().min_by(|x, y| x.0.cmp(&y.0)).unwrap();
+        let val = match &goal {
+            Goal::Min => res.iter().min_by(|x, y| x.0.cmp(&y.0)).unwrap(),
+            Goal::Max => res.iter().max_by(|x, y| x.0.cmp(&y.0)).unwrap()
+        };
        
-        min.0
+        val.0
     }
+}
+
+pub enum Goal {
+    Min,
+    Max
 }
