@@ -1,6 +1,5 @@
 use std::convert::TryInto;
 use std::collections::HashMap;
-use std::collections::HashSet;
 use adventofcode::lib::parse_file;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
@@ -12,7 +11,6 @@ enum Code {
 
 type Implementation = Box<dyn Fn(i32, usize, i32) -> (usize, i32)>;
 
-// #[derive(Clone)]
 struct Machine {
     tape: Vec<(Code, i32)>,
     executed: Vec<usize>,
