@@ -1,6 +1,6 @@
-use std::convert::TryInto;
-use std::collections::HashMap;
 use adventofcode::lib::parse_file;
+use std::collections::HashMap;
+use std::convert::TryInto;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 enum Code {
@@ -16,18 +16,18 @@ struct Machine {
     executed: Vec<usize>,
     accumulator: i32,
     head: usize,
-    instructions: HashMap<Code, Implementation>
+    instructions: HashMap<Code, Implementation>,
 }
 
 impl Machine {
     pub fn new(tape: Vec<(Code, i32)>) -> Self {
-        let mut instructions: HashMap<Code, Implementation>  = HashMap::new();
-        instructions.insert(Code::NOP,
-                            Box::new(|_arg, head, acc| (head + 1, acc)));
-        instructions.insert(Code::ACC,
-                            Box::new(|arg, head, acc| (head + 1, acc + arg)));
-        instructions.insert(Code::JMP,
-                            Box::new(|arg, head, acc| (((head as i32) + arg).try_into().unwrap(), acc)));
+        let mut instructions: HashMap<Code, Implementation> = HashMap::new();
+        instructions.insert(Code::NOP, Box::new(|_arg, head, acc| (head + 1, acc)));
+        instructions.insert(Code::ACC, Box::new(|arg, head, acc| (head + 1, acc + arg)));
+        instructions.insert(
+            Code::JMP,
+            Box::new(|arg, head, acc| (((head as i32) + arg).try_into().unwrap(), acc)),
+        );
         Self {
             tape,
             executed: vec![],
@@ -37,7 +37,7 @@ impl Machine {
         }
     }
 
-    fn execute(&mut self, code: Code, arg: i32) -> (usize, i32) {
+    fn execute(&self, code: Code, arg: i32) -> (usize, i32) {
         let (head, acc) = (self.instructions[&code])(arg, self.head, self.accumulator);
         (head, acc)
     }
@@ -47,8 +47,8 @@ impl Machine {
         loop {
             if self.executed.contains(&self.head) || self.head == self.tape.len() {
                 // TODO: return break reason - end of tape or loop
-                break
-            }            
+                break;
+            }
             let (code, arg) = self.tape[self.head];
             let (head, acc) = self.execute(code, arg);
             self.executed.push(self.head);
@@ -59,13 +59,16 @@ impl Machine {
     }
 
     pub fn filter_executed_to_jmp_nop(&self) -> Vec<usize> {
-        self.executed.iter().filter_map(|pos| {
-            let (code, _arg) = self.tape[*pos];
-            if code == Code::JMP || code == Code::NOP {
-                return Some(*pos)
-            }
-            None
-        }).collect()
+        self.executed
+            .iter()
+            .filter_map(|pos| {
+                let (code, _arg) = self.tape[*pos];
+                if code == Code::JMP || code == Code::NOP {
+                    return Some(*pos);
+                }
+                None
+            })
+            .collect()
     }
 
     fn toogle_code(&mut self, pos: usize) {
@@ -93,7 +96,7 @@ impl Machine {
             self.toogle_code(code_pos);
             self.run();
             if self.head == self.tape.len() {
-                break
+                break;
             }
             self.reset();
             self.tape = original_tape.clone();
