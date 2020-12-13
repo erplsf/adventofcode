@@ -9,33 +9,43 @@ struct Room {
 }
 
 impl Room {
-    fn iterate(&self) {
-        let new_state = self.seats.iter().enumerate().map(|(row_index, row_vec)| {
-            row_vec.iter().enumerate().map(move |(column_index, seat)| {
-                if self.floor_indices.contains(&(row_index, column_index)) {
-                    return false; // we're on the floor, terminate early
-                }
-                let adjacent_count = self.calculate_neighbors(row_index, column_index);
-                match seat {
-                    true => {
-                        if adjacent_count >= 4 {
-                            false
-                        } else {
-                            *seat
-                        }
+    pub fn new(room: String) -> Self {
+        let mut seats: Vec<Vec<bool>> = vec![];
+        let mut floor_indices: Vec<(usize, usize)> = vec![];
+        let mut rows = 0;
+        let mut columns = 0;
+        for (ri, row) in room.lines().enumerate() {
+            let mut row_seats: Vec<bool> = vec![];
+            columns = room.len();
+            rows += 1;
+            for (ci, ch) in row.chars().enumerate() {
+                let seat = match ch {
+                    '.' => {
+                        floor_indices.push((ri, ci));
+                        false
                     }
-                    false => {
-                        if adjacent_count == 0 {
-                            true
-                        } else {
-                            *seat
-                        }
-                    }
-                }
-            })
-        });
+                    'L' => false,
+                    _ => false,
+                };
+                row_seats.push(seat);
+            }
+            seats.push(row_seats);
+        }
 
-        // self.vacate_floor_seats(); // change to check if current location is not in floor_indices
+        Room {
+            rows,
+            columns,
+            seats,
+            floor_indices,
+        }
+    }
+    fn iterate(&mut self) {
+        let occupancy_map: Vec<Vec<usize>> = self.seats.iter().enumerate().map(|(ri, rv)| {
+            rv.iter().enumerate().map(|(ci, _s)| {
+                self.calculate_neighbors(ri, ci)
+            }).collect()
+        }).collect();
+        dbg!(occupancy_map);
     }
 
     fn print_state(&self) {
@@ -43,8 +53,14 @@ impl Room {
             for (ci, seat) in row.iter().enumerate() {
                 if self.floor_indices.contains(&(ri, ci)) {
                     print!(".");
+                    continue;
+                }
+                match seat {
+                    true => print!("#"),
+                    false => print!("L"),
                 }
             }
+            println!();
         }
     }
 
@@ -74,12 +90,11 @@ impl Room {
             0
         }
     }
-
-    fn vacate_floor_seats(&self) {
-        for (row, column) in self.floor_indices {}
-    }
 }
 
 fn main() {
-    // let contents = parse_file().unwrap();
+    let contents = parse_file().unwrap();
+    let mut room = Room::new(contents);
+    room.print_state();
+    room.iterate();
 }
