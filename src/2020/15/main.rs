@@ -1,4 +1,3 @@
-use adventofcode::lib::parse_file;
 use std::collections::HashMap;
 
 // key is the number, value is the turns at which it was spoken
@@ -17,10 +16,7 @@ fn parse_input(string: &str) -> (HashMap<usize, (usize, usize)>, (usize, usize))
     )
 }
 
-fn fill_next(
-    map: &mut HashMap<usize, (usize, usize)>,
-    (turn, last): (usize, usize),
-) -> usize {
+fn next_number(map: &mut HashMap<usize, (usize, usize)>, (turn, last): (usize, usize)) -> usize {
     let mut next_number: usize = 0;
     if let Some(find) = map.get_mut(&last) {
         // number was spoken before
@@ -37,15 +33,15 @@ fn fill_next(
 fn main() {
     let (mut map, (mut turn, mut last)) = parse_input("0,12,6,13,20,1,17");
     while turn < 2020 {
-        let new_last = fill_next(&mut map, (turn, last));
+        let new_number = next_number(&mut map, (turn, last));
         turn += 1;
-        last = new_last;
+        last = new_number;
     }
     dbg!(last);
     while turn < 30000000 {
-        let new_last = fill_next(&mut map, (turn, last));
+        let new_last = next_number(&mut map, (turn, last));
         turn += 1;
         last = new_last;
-    };
+    }
     dbg!(last);
 }
