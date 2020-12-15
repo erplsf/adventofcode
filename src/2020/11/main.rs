@@ -112,10 +112,10 @@ impl Room {
     }
 
     fn print_state(&self) {
-        let row_len = self.seats.first().unwrap().len() + 2;
-        print!("{}\n", str::repeat("-", row_len));
+        let row_len = self.rows;
+        print!("┌{}┐\n", str::repeat("─", row_len));
         for (ri, row) in self.seats.iter().enumerate() {
-            print!("|");
+            print!("│");
             for (ci, seat) in row.iter().enumerate() {
                 if self.floor_indices.contains(&(ri, ci)) {
                     print!(".");
@@ -126,10 +126,10 @@ impl Room {
                     false => print!("L"),
                 }
             }
-            print!("|");
+            print!("│");
             println!();
         }
-        print!("{}\n", str::repeat("-", row_len));
+        print!("└{}┘\n", str::repeat("─", row_len));
     }
 
     fn adjacent_seats(ri: usize, ci: usize) -> Vec<(usize, usize)> {
@@ -168,8 +168,8 @@ impl Room {
     ) -> Option<(usize, usize)> {
         // apply step (sr, sc) to indices and exit on first found seat
 
-        let rl = self.seats.len();
-        let cl = self.seats.first().unwrap().len();
+        let rl = self.rows;
+        let cl = self.columns;
         let mut new_ri = ri;
         let mut new_ci = ci;
         loop {
