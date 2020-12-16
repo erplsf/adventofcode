@@ -46,7 +46,6 @@ impl Machine {
         self.reset();
         loop {
             if self.executed.contains(&self.head) || self.head == self.tape.len() {
-                // TODO: return break reason - end of tape or loop
                 break;
             }
             let (code, arg) = self.tape[self.head];

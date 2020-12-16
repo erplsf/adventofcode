@@ -28,5 +28,5 @@ fn main() {
     let min_index = diff.iter().enumerate().min_by_key(|&(_, item)| item).unwrap();
     let final_result = schedules[min_index.0] * min_index.1;
     dbg!(&final_result);
-    // part 2 - system of linear equations
+    // TODO: Solve part 2 with "System of linear Diophantine equations"
 }

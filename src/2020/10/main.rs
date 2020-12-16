@@ -67,13 +67,11 @@ fn main() {
     // dbg!(&ranges);
     let combs: usize = ranges
         .iter()
-        .map(|range| {
-            match range.len() {
-                1 => 2,
-                2 => 4,
-                3 => 7,
-                _ => panic!("unsupported case!"),
-            }
+        .map(|range| match range.len() {
+            1 => 2,
+            2 => 4,
+            3 => 7,
+            _ => panic!("unsupported case!"),
         })
         .product();
     dbg!(&combs);
