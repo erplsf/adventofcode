@@ -7,6 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+regex = "1"
 md5 = "0.7.0"
 itertools = "0.9.0"
 petgraph = "0.5.1"
@@ -121,5 +122,17 @@ name = "2020-16"
 path = "src/2020/16/main.rs"
 
 [[bin]]
+name = "2020-17"
+path = "src/2020/17/main.rs"
+
+[[bin]]
 name = "2020-18"
 path = "src/2020/18/main.rs"
+
+[[bin]]
+name = "2020-19"
+path = "src/2020/19/main.rs"
+
+
+
+
