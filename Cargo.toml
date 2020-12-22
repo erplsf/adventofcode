@@ -133,6 +133,10 @@ path = "src/2020/18/main.rs"
 name = "2020-19"
 path = "src/2020/19/main.rs"
 
+[[bin]]
+name = "2020-22"
+path = "src/2020/22/main.rs"
+
 
 
 
