@@ -12,6 +12,7 @@ md5 = "0.7.0"
 itertools = "0.9.0"
 petgraph = "0.5.1"
 linked_hash_set = "0.1.4"
+phf = { version = "0.8.0", features = ["macros"] }
 
 [[bin]]
 name = "2015-01"
@@ -137,6 +138,8 @@ path = "src/2020/19/main.rs"
 name = "2020-22"
 path = "src/2020/22/main.rs"
 
-
+[[bin]]
+name = "2020-24"
+path = "src/2020/24/main.rs"
 
 
