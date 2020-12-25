@@ -5,6 +5,7 @@ name = "adventofcode"
 version = "0.1.0"
 dependencies = [
  "itertools",
+ "lazy_static",
  "linked_hash_set",
  "md5",
  "petgraph",
