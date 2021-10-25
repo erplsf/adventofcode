@@ -16,18 +16,20 @@ string read_input(string path) {
   return "";
 }
 
-string resolve_input(int argc, char **argv) {
-  string path;
+string resolve_input(int day, int argc, char **argv) {
+  stringstream path;
   if (argc == 2) {
-    path = argv[1];
+    path << argv[1];
   } else {
-    path = ("../../inputs/1.txt");
+    path << "../../inputs/" << day << ".txt";
   }
-  return path;
+  return path.str();
 }
 
+constexpr const int DAY = 1;
+
 int main(int argc, char *argv[]) {
-  string path = resolve_input(argc, argv);
+  string path = resolve_input(DAY, argc, argv);
   string content = read_input(path);
 
   // sol
