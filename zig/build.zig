@@ -27,6 +27,7 @@ pub fn build(b: *std.build.Builder) !void {
     defer walker.deinit();
 
     while (try walker.next()) |entry| {
+        std.debug.print("found: {s}\n", .{entry.path});
         if (std.mem.endsWith(u8, entry.path, "main.zig")) {
             std.debug.print("building: {s}\n", .{entry.path});
 
@@ -34,11 +35,18 @@ pub fn build(b: *std.build.Builder) !void {
             const exe = b.addExecutable("main", fullPath);
             alloc.free(fullPath);
 
+            var iter = std.mem.split(u8, entry.path, "/");
+            while(iter.next()) |part| {
+                std.debug.print("part: {s}\n", .{part});
+            }
+
             exe.setTarget(target);
             exe.setBuildMode(mode);
 
-            const dir = try exe.install_step;
-            std.debug.print("{s}\n", .{dir});
+            exe.override_dest_dir = .{ .custom = "bin/2015/" };
+
+            // std.debug.print("{s}", .{step});
+            // std.debug.print("{s}", .{dir});
 
             exe.install();
         }
