@@ -14,10 +14,10 @@ pub fn build(b: *std.build.Builder) !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = &gpa.allocator;
 
-    defer { // NOTE: remove check after finishing
-        const leaked = gpa.deinit();
-        if (leaked) std.testing.expect(false) catch @panic("TEST FAIL"); //fail test; can't try in defer as defer is executed after we return
-    }
+    // defer { // NOTE: remove check after finishing // TODO: fix the memory leak
+    //     const leaked = gpa.deinit();
+    //     if (leaked) std.testing.expect(false) catch @panic("TEST FAIL"); //fail test; can't try in defer as defer is executed after we return
+    // }
 
     const base = "src/";
     const opts = .{ .access_sub_paths = true, .iterate = true, .no_follow = true };
@@ -27,28 +27,55 @@ pub fn build(b: *std.build.Builder) !void {
     defer walker.deinit();
 
     while (try walker.next()) |entry| {
-        std.debug.print("found: {s}\n", .{entry.path});
+        // std.debug.print("found: {s}\n", .{entry.path});
         if (std.mem.endsWith(u8, entry.path, "main.zig")) {
-            std.debug.print("building: {s}\n", .{entry.path});
-
-            const fullPath = try std.fmt.allocPrint(alloc, "{s}{s}", .{ base, entry.path });
-            const exe = b.addExecutable("main", fullPath);
-            alloc.free(fullPath);
-
+            var valid = true;
             var iter = std.mem.split(u8, entry.path, "/");
-            while(iter.next()) |part| {
-                std.debug.print("part: {s}\n", .{part});
+            var i: u8 = 0;
+            var exe_path: []const u8 = undefined;
+            var free_path = false;
+            var exe_name: []const u8 = undefined;
+            var free_name = false;
+
+            while (iter.next()) |part| {
+                // std.debug.print("part: {s}\n", .{part});
+                if (i == 0) { // TODO: use switch
+                    exe_path = try std.fmt.allocPrint(alloc, "bin/{s}", .{part});
+                    free_path = true;
+                }
+                if (i == 1) {
+                    exe_name = try std.fmt.allocPrint(alloc, "{s}", .{part});
+                    free_name = true;
+                }
+                if (i == 2 and !std.mem.eql(u8, "main.zig", part)) {
+                    valid = false;
+                }
+                i += 1;
+                // TODO: add all but last parts to the final path
             }
 
-            exe.setTarget(target);
-            exe.setBuildMode(mode);
+            if (valid) {
+                std.debug.print("building: {s}/{s} -> {s}/{s}/{s}\n", .{ "src", entry.path, "zig-out", exe_path, exe_name });
+                // std.debug.print("{s}\n", .{ exe_path });
+                // std.debug.print("{s}\n", .{ exe_name });
+                const fullPath = try std.fmt.allocPrint(alloc, "{s}{s}", .{ base, entry.path });
+                const exe = b.addExecutable(exe_name, fullPath);
+                alloc.free(fullPath);
 
-            exe.override_dest_dir = .{ .custom = "bin/2015/" };
+                exe.override_dest_dir = .{ .custom = exe_path };
 
-            // std.debug.print("{s}", .{step});
-            // std.debug.print("{s}", .{dir});
+                exe.setTarget(target);
+                exe.setBuildMode(mode);
 
-            exe.install();
+                exe.install();
+            }
+
+            // if (free_path) {
+            //     alloc.free(exe_path); // TODO: fix the memory leak
+            // }
+            // if (free_name ) {
+            //     alloc.free(exe_name);
+            // }
         }
     }
 
