@@ -62,6 +62,8 @@ pub fn build(b: *std.build.Builder) !void {
                 const exe = b.addExecutable(exe_name, fullPath);
                 alloc.free(fullPath);
 
+                exe.addPackagePath("lib", "src/lib.zig");
+
                 exe.override_dest_dir = .{ .custom = exe_path };
 
                 exe.setTarget(target);
