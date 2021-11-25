@@ -1,1 +1,1 @@
-CPM.cmake/cmake/CPM.cmake
+../CPM.cmake/cmake/CPM.cmake
