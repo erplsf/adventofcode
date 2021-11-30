@@ -37,9 +37,9 @@ function(aoc_add_day day)
   add_dependencies(${aoc_year} "${aoc_year}_${day}")
 endfunction()
 
-aoc_start_year(2015)
-aoc_add_day(1)
-aoc_end_year()
+# aoc_start_year(2015)
+# aoc_add_day(1)
+# aoc_end_year()
 
 aoc_start_year(2021)
 aoc_add_day(1)
