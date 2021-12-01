@@ -21,6 +21,9 @@ target_include_directories(butler SYSTEM PUBLIC ${curlpp_SOURCE_DIR}/include)
 CPMAddPackage(gh:CLIUtils/CLI11@2.1.2)
 target_include_directories(butler SYSTEM PUBLIC ${CLI11_SOURCE_DIR}/include)
 
+CPMAddPackage(gh:boost-ext/ut@1.1.8)
+add_library(ut INTERFACE)
+
 macro(aoc_start_year year)
   set(aoc_year ${year})
   add_custom_target(${aoc_year})
@@ -34,6 +37,8 @@ function(aoc_add_day day)
   add_executable("${aoc_year}_${day}" "src/${aoc_year}/${day}/main.cpp")
   set_target_properties("${aoc_year}_${day}" PROPERTIES RUNTIME_OUTPUT_DIRECTORY "bin/${aoc_year}")
   set_target_properties("${aoc_year}_${day}" PROPERTIES OUTPUT_NAME ${day})
+  target_include_directories("${aoc_year}_${day}" SYSTEM PUBLIC ${ut_SOURCE_DIR}/include)
+  target_link_libraries("${aoc_year}_${day}" PRIVATE ut)
   add_dependencies(${aoc_year} "${aoc_year}_${day}")
 endfunction()
 
