@@ -1,6 +1,7 @@
 #include <fstream>
 #include <iostream>
 #include <numeric>
+#include <optional>
 #include <sstream>
 #include <streambuf>
 #include <string>
@@ -33,6 +34,15 @@ uint count_increases(const vector<uint> &mes, uint window) {
   return count;
 }
 
+optional<string> get_input(int argc, char *argv[]) {
+  if (argc != 2) {
+    return {};
+  }
+  ifstream file(argv[1]);
+  return string((std::istreambuf_iterator<char>(file)),
+                std::istreambuf_iterator<char>()); // TODO: extract to aoc lib
+}
+
 vector<string> split(const string &input, char delim) { // TODO: move to aoc lib
   vector<string> results;
   auto stream = stringstream{input};
@@ -44,18 +54,16 @@ vector<string> split(const string &input, char delim) { // TODO: move to aoc lib
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 2) {
+  auto contents = get_input(argc, argv);
+  if (!contents)
     return 1;
-  }
-  ifstream file(argv[1]);
-  string contents((std::istreambuf_iterator<char>(file)),
-                  std::istreambuf_iterator<char>()); // TODO: extract to aoc lib
 
-  auto lines = split(contents, '\n');
+  string input = contents.value();
+  auto lines = split(input, '\n');
 
   vector<uint> mes;
   for (auto &&line : lines)
-    mes.emplace_back(atoi(line.c_str()));
+    mes.emplace_back(stoul(line));
 
   cout << "part one: " << count_increases(mes, 1) << "\n";
   cout << "part two: " << count_increases(mes, 3) << "\n";
