@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
   if (!contents)
     return 1;
 
-  auto results = solve(contents.value());
+  auto results = solve(*contents);
 
   cout << "part one: " << get<0>(results) << "\n";
   cout << "part two: " << get<1>(results) << "\n";
