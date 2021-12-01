@@ -33,18 +33,28 @@ uint count_increases(const vector<uint> &mes, uint window) {
   return count;
 }
 
+vector<string> split(const string &input, char delim) { // TODO: move to aoc lib
+  vector<string> results;
+  auto stream = stringstream{input};
+
+  for (string part; getline(stream, part, delim);)
+    results.emplace_back(part);
+
+  return results;
+}
+
 int main(int argc, char *argv[]) {
   if (argc != 2) {
     return 1;
   }
   ifstream file(argv[1]);
   string contents((std::istreambuf_iterator<char>(file)),
-                  std::istreambuf_iterator<char>());
+                  std::istreambuf_iterator<char>()); // TODO: extract to aoc lib
 
-  auto stream = stringstream{contents};
+  auto lines = split(contents, '\n');
 
   vector<uint> mes;
-  for (string line; getline(stream, line, '\n');)
+  for (auto &&line : lines)
     mes.emplace_back(atoi(line.c_str()));
 
   cout << "part one: " << count_increases(mes, 1) << "\n";
