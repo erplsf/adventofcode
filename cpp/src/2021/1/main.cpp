@@ -10,13 +10,10 @@ using namespace std;
 
 uint count_increases(const vector<uint> &mes, uint window) {
   uint count = 0;
-  if (window == 0) {
-    return count;
-  }
-
-  uint size = mes.size();
   uint i = 0;
-  while ((i + window) <= size) {
+  uint size = mes.size();
+
+  while ((i + window) < size) {
     auto s1 = mes.begin() + i;
     auto e1 = mes.begin() + i + window;
     auto s2 = mes.begin() + i + 1;
