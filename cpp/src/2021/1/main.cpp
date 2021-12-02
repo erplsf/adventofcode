@@ -1,3 +1,4 @@
+#include <aoc/aoc.hpp>
 #include <boost/ut.hpp>
 #include <fstream>
 #include <iostream>
@@ -9,26 +10,8 @@
 #include <vector>
 
 using namespace std;
+using namespace aoc;
 using namespace boost::ut;
-
-optional<string> get_input(int argc, char *argv[]) {
-  if (argc != 2) {
-    return {};
-  }
-  ifstream file(argv[1]);
-  return string((std::istreambuf_iterator<char>(file)),
-                std::istreambuf_iterator<char>()); // TODO: extract to aoc lib
-}
-
-vector<string> split(const string &input, char delim) { // TODO: move to aoc lib
-  vector<string> results;
-  auto stream = stringstream{input};
-
-  for (string part; getline(stream, part, delim);)
-    results.emplace_back(part);
-
-  return results;
-}
 
 uint count_increases(const vector<uint> &mes, uint window) {
   uint count = 0;
