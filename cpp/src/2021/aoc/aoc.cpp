@@ -11,10 +11,10 @@ optional<string> get_input(int argc, char *argv[]) {
   }
   ifstream file(argv[1]);
   return string((std::istreambuf_iterator<char>(file)),
-                std::istreambuf_iterator<char>()); // TODO: extract to aoc lib
+                std::istreambuf_iterator<char>());
 }
 
-vector<string> split(const string &input, char delim) { // TODO: move to aoc lib
+vector<string> split(const string &input, char delim) {
   vector<string> results;
   auto stream = stringstream{input};
 
