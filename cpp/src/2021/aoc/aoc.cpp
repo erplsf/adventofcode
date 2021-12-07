@@ -1,8 +1,12 @@
 #include "aoc.hpp"
+#include <algorithm>
+#include <cctype>
 #include <fstream>
+#include <locale>
 #include <sstream>
 
 namespace aoc {
+
 using namespace std;
 
 optional<string> get_input(int argc, char *argv[]) {
@@ -10,8 +14,7 @@ optional<string> get_input(int argc, char *argv[]) {
     return {};
   }
   ifstream file(argv[1]);
-  return string((std::istreambuf_iterator<char>(file)),
-                std::istreambuf_iterator<char>());
+  return string((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
 }
 
 vector<string> split(const string &input, char delim) {
@@ -22,6 +25,23 @@ vector<string> split(const string &input, char delim) {
     results.emplace_back(part);
 
   return results;
+}
+
+void ltrim(string &s) {
+  s.erase(s.begin(), find_if(s.begin(), s.end(),
+                             [](unsigned char ch) { return !isspace(ch); }));
+}
+
+void rtrim(string &s) {
+  s.erase(find_if(s.rbegin(), s.rend(),
+                  [](unsigned char ch) { return !isspace(ch); })
+              .base(),
+          s.end());
+}
+
+void trim(string &s) {
+  ltrim(s);
+  rtrim(s);
 }
 
 } // namespace aoc

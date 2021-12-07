@@ -8,10 +8,6 @@
 namespace aoc {
 using namespace std;
 
-optional<string> get_input(int argc, char *argv[]);
-
-vector<string> split(const string &input, char delim);
-
 constexpr size_t c_hash(const char *str) {
   const long long p = 131;
   const long long m = 4294967291; // 2^32 - 5, largest 32 bit prime
@@ -23,6 +19,16 @@ constexpr size_t c_hash(const char *str) {
   }
   return total;
 }
+
+optional<string> get_input(int argc, char *argv[]);
+
+vector<string> split(const string &input, char delim);
+
+void ltrim(string &s);
+
+void rtrim(string &s);
+
+void trim(string &s);
 
 } // namespace aoc
 
