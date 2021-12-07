@@ -24,6 +24,21 @@ target_include_directories(butler SYSTEM PUBLIC ${CLI11_SOURCE_DIR}/include)
 CPMAddPackage(gh:boost-ext/ut@1.1.8)
 add_library(ut INTERFACE)
 
+CPMAddPackage(
+  NAME Boost
+  VERSION 1.77.0
+  URL https://boostorg.jfrog.io/artifactory/main/release/1.77.0/source/boost_1_77_0.tar.gz
+  URL_HASH SHA256=5347464af5b14ac54bb945dc68f1dd7c56f0dad7262816b956138fc53bcc0131
+)
+
+if (Boost_ADDED)
+  add_library(Boost::boost INTERFACE IMPORTED GLOBAL)
+  target_include_directories(Boost::boost SYSTEM INTERFACE ${Boost_SOURCE_DIR})
+
+  # Disable autolink
+  target_compile_definitions(Boost::boost INTERFACE BOOST_ALL_NO_LIB=1)
+endif()
+
 add_library(aoc_util src/2021/aoc/aoc.cpp)
 
 macro(aoc_start_year year)
@@ -41,6 +56,7 @@ function(aoc_add_day day)
   set_target_properties("${aoc_year}_${day}" PROPERTIES OUTPUT_NAME ${day})
   target_include_directories("${aoc_year}_${day}" SYSTEM PUBLIC ${ut_SOURCE_DIR}/include)
   target_include_directories("${aoc_year}_${day}" PUBLIC src/2021)
+  target_link_libraries("${aoc_year}_${day}" PRIVATE Boost::boost)
   target_link_libraries("${aoc_year}_${day}" PRIVATE ut)
   target_link_libraries("${aoc_year}_${day}" PRIVATE aoc_util)
   add_dependencies(${aoc_year} "${aoc_year}_${day}")
@@ -55,4 +71,5 @@ aoc_add_day(1)
 aoc_add_day(2)
 aoc_add_day(3)
 aoc_add_day(4)
+aoc_add_day(5)
 aoc_end_year()

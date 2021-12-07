@@ -3,6 +3,7 @@
 #include <cctype>
 #include <fstream>
 #include <locale>
+#include <regex>
 #include <sstream>
 
 namespace aoc {
@@ -25,6 +26,12 @@ vector<string> split(const string &input, char delim) {
     results.emplace_back(part);
 
   return results;
+}
+
+vector<string> split(const string &input, const string &regex) {
+  std::regex re(regex);
+  sregex_token_iterator it{input.begin(), input.end(), re, -1};
+  return vector<string>{it, {}};
 }
 
 void ltrim(string &s) {

@@ -24,6 +24,8 @@ optional<string> get_input(int argc, char *argv[]);
 
 vector<string> split(const string &input, char delim);
 
+vector<string> split(const string &input, const string &regex);
+
 void ltrim(string &s);
 
 void rtrim(string &s);
