@@ -1,6 +1,7 @@
 #include <aoc/aoc.hpp>
 #include <boost/ut.hpp>
 #include <string>
+#include <unordered_map>
 
 using namespace aoc;
 using namespace std;
@@ -16,19 +17,20 @@ vector<uint> parse(string input) {
   return vec;
 }
 
-vector<uint> sim(vector<uint> input, uint days) {
-  for (uint day = 0; day < days; day++) {
-    auto size = input.size();
-    cout << "day: " << day << " size: " << size << "\n";
-    for (uint i = 0; i < size; i++) {
-      if (input[i] == 0) {
-        input[i] = 6;
-        input.emplace_back(8);
-      } else
-        input[i] -= 1;
-    }
+// 0 -> 6 + 8
+uint sim_two(vector<uint> input, uint days) {
+  uint count = 0;
+  unordered_map<uint, uint> map;
+  count += input.size();
+
+  for (uint cd : input) {
+    uint fs = cd + 1; // day when it will first spawn a new offspring (cooldown
+                      // + 1)
+    map[fs] += 1;
+    // then it goes in cycles
   }
-  return input;
+
+  return count;
 }
 
 auto solve(string input) {
