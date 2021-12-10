@@ -11,7 +11,13 @@ using namespace boost::ut;
 typedef pair<uint, uint> xy;
 typedef unordered_map<xy, uint, boost::hash<xy>> u_map;
 
-vector<xy> neighbors(xy point, uint max, bool diag = false) {
+struct m {
+  u_map map;
+  uint mx = 0;
+  uint my = 0;
+};
+
+vector<xy> neighbors(xy point, uint mx, uint my, bool diag = false) {
   vector<xy> neigh;
   vector<xy> pairs;
   if (!diag)
@@ -21,18 +27,31 @@ vector<xy> neighbors(xy point, uint max, bool diag = false) {
              {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
   for (auto pair : pairs) {
-    auto nx = pair.first + point.first;
-    auto ny = pair.second + point.second;
-    if ((nx >= 0 && nx < max) && (ny >= 0 && ny < max))
+    int nx = pair.first + point.first;
+    int ny = pair.second + point.second;
+    if ((nx >= 0 && (uint)nx < mx) && (ny >= 0 && (uint)ny < my))
       neigh.emplace_back(make_pair(nx, ny));
   }
 
   return neigh;
 }
 
+vector<uint> fetch(u_map &map, vector<xy> points) {
+  vector<uint> v;
+  for (auto point : points) {
+    v.emplace_back(map[point]);
+  }
+  return v;
+}
+
+bool lowest(m &map, xy point) {
+  auto neigh = neighbors(point, map.mx, map.my);
+  auto vals = fetch(map.map, neigh);
+}
+
 auto sol(string input) {
   auto lines = split(input, '\n');
-  u_map map;
+  m map;
   // uint mh = lines.size();
   // uint mw = lines[0].size();
   uint h = 0;
@@ -40,7 +59,7 @@ auto sol(string input) {
   for (auto &&line : lines) {
     for (char c : line) {
       uint val = atoi(&c);
-      map[make_pair(h, w)] = val;
+      map.map[make_pair(h, w)] = val;
       w++;
     }
     h++;
