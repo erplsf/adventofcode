@@ -56,38 +56,65 @@ uint score_corrupted(char c) {
   return 0;
 }
 
-uint solve(string input, bool p1) {
-  if (p1) {
-    vector<char> stack;
-    auto lines = split(input, '\n');
-    uint sum = 0;
+char match(char c) {
+  switch (c) {
+  case '(':
+    return ')';
+  case '[':
+    return ']';
+  case '{':
+    return '}';
+  case '<':
+    return '>';
+  }
+  return '!';
+}
 
-    for (auto &&line : lines) {
-      uint i = 0;
-      bool corrupted = false;
-      auto size = line.size();
-      for (; i < size; i++) {
-        // cout << "cl: " << line[i] << "\n";
-        if (is_opening(line[i]))
-          stack.emplace_back(line[i]);
-        else if (is_closing(line[i])) {
-          if (is_matching(line[i], stack.back()))
-            stack.pop_back();
-          else {
-            corrupted = true;
-            break;
-          }
+uint score_incomplete(char c) {
+  switch (c) {
+  case ')':
+    return 1;
+  case ']':
+    return 2;
+  case '}':
+    return 3;
+  case '>':
+    return 4;
+  }
+  return 0;
+}
+
+uint solve(string input, bool p1) {
+  vector<char> stack;
+  auto lines = split(input, '\n');
+  uint corrupted_sum = 0;
+
+  for (auto &&line : lines) {
+    uint i = 0;
+    bool corrupted = false;
+    auto size = line.size();
+    for (; i < size; i++) {
+      // cout << "cl: " << line[i] << "\n";
+      if (is_opening(line[i]))
+        stack.emplace_back(line[i]);
+      else if (is_closing(line[i])) {
+        if (is_matching(line[i], stack.back()))
+          stack.pop_back();
+        else {
+          corrupted = true;
+          break;
         }
       }
-
-      if (corrupted) {
-        // cout << "c: " << line[i] << " score: " << score(line[i]) << "\n";
-        sum += score_corrupted(line[i]);
-      }
     }
-    return sum;
-  } else {
+    if (corrupted)
+      corrupted_sum += score_corrupted(line[i]);
+
+    while (stack.size() > 1) {
+      char c = stack.back();
+    }
   }
+  if (p1)
+    return corrupted_sum;
 
   return 0;
 }
