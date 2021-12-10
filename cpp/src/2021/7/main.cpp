@@ -53,6 +53,16 @@ void pv(vector<uint> const &v) {
   cout << "]\n";
 }
 
+uint min(vector<uint> &v) {
+  auto min = min_element(v.begin(), v.end());
+  return v[distance(v.begin(), min)];
+}
+
+uint max(vector<uint> &v) {
+  auto max = max_element(v.begin(), v.end());
+  return v[distance(v.begin(), max)];
+}
+
 uint solve(vector<uint> crabs, bool p1) {
   if (p1) {
     auto med = median(crabs);
@@ -62,24 +72,23 @@ uint solve(vector<uint> crabs, bool p1) {
     return cost;
   } else {
     vector<uint> costs;
-    costs.resize(crabs.size());
+    // cout << "size: " << costs.size() << "\n";
     // sort(crabs.begin(), crabs.end());
-    for (uint i = 0; i < crabs.size(); i++) {
+    auto mi = min(crabs);
+    auto ma = max(crabs);
+    for (uint i = mi; i < ma; i++) {
       uint sum = 0;
-      for (uint ci = 0; i < crabs.size(); i++) {
-        int d = abs((int)(crabs[i] - crabs[ci]));
-        cout << "d: " << d << "\n";
+      for (uint ci = 0; ci < crabs.size(); ci++) {
+        int d = abs((int)(i - crabs[ci]));
+        // cout << "d: " << d << "\n";
         sum += mcost(d);
       }
-      costs[i] = sum;
+      // cout << "i: " << i << "\n";
+      costs.emplace_back(sum);
     }
 
-    cout << "c: " << cost(1) << "\n";
-    cout << "c: " << cost(2) << "\n";
-    cout << "c: " << cost(3) << "\n";
-
-    cout << "costs:\n";
-    pv(costs);
+    // cout << "costs:\n";
+    // pv(costs);
 
     auto min = min_element(costs.begin(), costs.end());
     if (min == costs.end())
