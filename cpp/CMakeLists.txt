@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(CMAKE_BUILD_TYPE Debug)
+
 add_compile_options(-Wall -Wextra -Werror -Wshadow -Wdouble-promotion)
 
 # inputs downloader
@@ -73,5 +75,6 @@ aoc_add_day(3)
 aoc_add_day(4)
 aoc_add_day(5)
 aoc_add_day(6)
+aoc_add_day(7)
 aoc_add_day(10)
 aoc_end_year()
