@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 
+if(${APPLE})
+  SET(CMAKE_OSX_SYSROOT "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk")
+endif()
+
 project(aoc)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -79,4 +83,5 @@ aoc_add_day(7)
 aoc_add_day(8)
 aoc_add_day(9)
 aoc_add_day(10)
+aoc_add_day(16)
 aoc_end_year()
