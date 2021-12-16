@@ -1,5 +1,6 @@
 #include <aoc/aoc.hpp>
 #include <boost/ut.hpp>
+#include <numeric>
 #include <string>
 #include <unordered_map>
 #include <variant>
@@ -15,6 +16,7 @@ struct packet {
   uint sub_length;
   uint sub_count;
   variant<u_long, vector<packet>> data;
+  u_long value; // stores final computed value
 };
 
 string htob(char c) {
@@ -96,7 +98,8 @@ pair<packet, uint> parse_packet(const string input, bool need_decode = true) {
         break;
     }; // continue while not the last packet
     // cout << "val: " << out << "\n";
-    pkt.data = stoul(out, nullptr, 2);
+    pkt.value = stoul(out, nullptr, 2);
+    pkt.data = pkt.value;
   } else { // operator type
     pkt.l_type_id = decode(dcd, i, 1);
     i++;
@@ -128,12 +131,30 @@ pair<packet, uint> parse_packet(const string input, bool need_decode = true) {
     };
 
     pkt.data = sub_packets;
+
+    // now we can compute the value
+    // switch (pkt.type_id) {
+    //   cases
+    // }
   };
 
   return make_pair(pkt, i);
 }
 
-auto solve(string) { return make_pair(0, 0); }
+u_long sov(const packet &pkt) { // sum of versions
+  u_long sum = 0;
+  sum += pkt.version;
+  if (auto val = get_if<vector<packet>>(&pkt.data))
+    sum += accumulate(val->begin(), val->end(), 0,
+                      [](u_long acc, packet pkt) { return acc + sov(pkt); });
+  return sum;
+}
+
+auto solve(string input) {
+  auto [pkt, read] = parse_packet(input);
+
+  return make_pair(sov(pkt), 0);
+}
 
 suite tests = [] {
   test("example") = [] {
@@ -146,6 +167,7 @@ suite tests = [] {
     expect(pkt.type_id == 4_i);
     expect(get<u_long>(pkt.data) == 2021_i);
 
+    // sub type 0
     pair = parse_packet("38006F45291200");
     pkt = pair.first;
     expect(pkt.version == 1_i);
@@ -156,10 +178,34 @@ suite tests = [] {
     expect(get<u_long>(get<vector<packet>>(pkt.data)[0].data) == 10_i);
     expect(get<u_long>(get<vector<packet>>(pkt.data)[1].data) == 20_i);
 
-    // expect(solve_p1("8A004A801A8002F478") == 16_i);
-    // expect(solve_p1("620080001611562C8802118E34") == 12_i);
-    // expect(solve_p1("C0015000016115A2E0802F182340") == 23_i);
-    // expect(solve_p1("A0016C880162017C3686B18A3D4780") == 31_i);
+    // sub type 1
+    pair = parse_packet("EE00D40C823060");
+    pkt = pair.first;
+    expect(pkt.version == 7_i);
+    expect(pkt.type_id == 3_i);
+    expect(pkt.l_type_id == 1_i);
+    expect(pkt.sub_count == 3_i);
+    expect(get<vector<packet>>(pkt.data).size() == 3);
+    expect(get<u_long>(get<vector<packet>>(pkt.data)[0].data) == 1_i);
+    expect(get<u_long>(get<vector<packet>>(pkt.data)[1].data) == 2_i);
+    expect(get<u_long>(get<vector<packet>>(pkt.data)[2].data) == 3_i);
+
+    // sums
+    pair = parse_packet("8A004A801A8002F478");
+    pkt = pair.first;
+    expect(sov(pkt) == 16_i);
+
+    pair = parse_packet("620080001611562C8802118E34");
+    pkt = pair.first;
+    expect(sov(pkt) == 12_i);
+
+    pair = parse_packet("C0015000016115A2E0802F182340");
+    pkt = pair.first;
+    expect(sov(pkt) == 23_i);
+
+    pair = parse_packet("A0016C880162017C3686B18A3D4780");
+    pkt = pair.first;
+    expect(sov(pkt) == 31_i);
   };
 };
 
