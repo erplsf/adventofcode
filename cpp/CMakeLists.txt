@@ -30,6 +30,9 @@ target_include_directories(butler SYSTEM PUBLIC ${CLI11_SOURCE_DIR}/include)
 CPMAddPackage(gh:boost-ext/ut@1.1.8)
 add_library(ut INTERFACE)
 
+SET(FMT_TEST FALSE)
+CPMAddPackage("gh:fmtlib/fmt#8.0.1@8.0.1")
+
 CPMAddPackage(
   NAME Boost
   VERSION 1.77.0
@@ -62,9 +65,11 @@ function(aoc_add_day day)
   set_target_properties("${aoc_year}_${day}" PROPERTIES OUTPUT_NAME ${day})
   target_include_directories("${aoc_year}_${day}" SYSTEM PUBLIC ${ut_SOURCE_DIR}/include)
   target_include_directories("${aoc_year}_${day}" PUBLIC src/2021)
+  target_include_directories("${aoc_year}_${day}" SYSTEM PUBLIC ${fmt_SOURCE_DIR}/include)
   target_link_libraries("${aoc_year}_${day}" PRIVATE Boost::boost)
   target_link_libraries("${aoc_year}_${day}" PRIVATE ut)
   target_link_libraries("${aoc_year}_${day}" PRIVATE aoc_util)
+  target_link_libraries("${aoc_year}_${day}" PRIVATE fmt)
   add_dependencies(${aoc_year} "${aoc_year}_${day}")
 endfunction()
 

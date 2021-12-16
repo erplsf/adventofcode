@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <aoc/aoc.hpp>
 #include <boost/ut.hpp>
+#include <fmt/core.h>
 #include <numeric>
 #include <string>
 #include <unordered_map>
@@ -229,25 +230,8 @@ string ttc(uint64_t type) {
   return "";
 }
 
-void ppv(const packet &pkt) {
-  if (pkt.type_id == 4)
-    cout << " " << pkt.value;
-
-  cout << ttc(pkt.type_id);
-
-  if (auto val = get_if<vector<packet>>(&pkt.data)) {
-    cout << "(";
-    for (auto p : *val)
-      ppv(p);
-    cout << ")";
-  };
-}
-
 auto solve(string input) {
   auto [pkt, read] = parse_packet(input);
-
-  // ppv(pkt);
-  // cout << "\n";
 
   return make_pair(sov(pkt), pkt.value);
 }
@@ -329,6 +313,6 @@ int main(int argc, char *argv[]) {
 
   auto results = solve(*contents);
 
-  cout << "part one: " << get<0>(results) << "\n";
-  cout << "part two: " << get<1>(results) << "\n";
+  fmt::print("part one: {}\n", get<0>(results));
+  fmt::print("part two: {}\n", get<1>(results));
 }
