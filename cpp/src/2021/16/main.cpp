@@ -138,14 +138,14 @@ pair<packet, uint> parse_packet(const string input, bool need_decode = true) {
     case 0: {
       auto sp = get<vector<packet>>(pkt.data);
       pkt.value =
-          accumulate(sp.begin(), sp.end(), 0ll,
+          accumulate(sp.begin(), sp.end(), 0ull,
                      [](uint64_t acc, packet pkt) { return acc + pkt.value; });
       break;
     }
     case 1: {
       auto sp = get<vector<packet>>(pkt.data);
       pkt.value =
-          accumulate(sp.begin(), sp.end(), 1ll,
+          accumulate(sp.begin(), sp.end(), 1ull,
                      [](uint64_t acc, packet pkt) { return acc * pkt.value; });
       break;
     }
