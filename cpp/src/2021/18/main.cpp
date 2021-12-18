@@ -73,6 +73,7 @@ void psn(string &s, sn &num, ull prev_level = 0, ull sl = 0) {
   if (num.right) {
     if (num.right->level == num.level)
       sl++;
+
     psn(s, *num.right, num.level, sl);
   } else {
     s += fmt::format("{}", string(num.level, ']'));
@@ -92,17 +93,20 @@ suite tests = [] {
     sn *num;
     string inp;
 
-    inp = "[1,2]";
-    num = parse(inp);
+    num = parse("[1,2]");
     expect(o_psn(*num) == "[1,2]");
 
-    inp = "[[1,2],3]";
-    num = parse(inp);
+    num = parse("[[1,2],3]");
     expect(o_psn(*num) == "[[1,2],3]");
 
-    inp = "[9,[8,7]]";
-    num = parse(inp);
+    num = parse("[9,[8,7]]");
     expect(o_psn(*num) == "[9,[8,7]]"s);
+
+    num = parse("[[1,9],[8,5]]");
+    expect(o_psn(*num) == "[[1,9],[8,5]]"s);
+
+    num = parse("[[[[1,2],[3,4]],[[5,6],[7,8]]],9]");
+    expect(o_psn(*num) == "[[[[1,2],[3,4]],[[5,6],[7,8]]],9]"s);
   };
 };
 
