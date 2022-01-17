@@ -49,6 +49,8 @@ if (Boost_ADDED)
 endif()
 
 add_library(aoc_util src/2021/aoc/aoc.cpp)
+target_include_directories(aoc_util SYSTEM PUBLIC ${fmt_SOURCE_DIR}/include)
+target_link_libraries(aoc_util PRIVATE fmt)
 
 macro(aoc_start_year year)
   set(aoc_year ${year})
