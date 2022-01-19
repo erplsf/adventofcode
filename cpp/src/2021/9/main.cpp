@@ -1,4 +1,5 @@
 #include <aoc/aoc.hpp>
+#include <aoc/tdm.hpp>
 #include <boost/container_hash/hash.hpp>
 #include <boost/ut.hpp>
 #include <string>
@@ -8,8 +9,8 @@ using namespace aoc;
 using namespace std;
 using namespace boost::ut;
 
-typedef pair<uint, uint> xy;
-typedef unordered_map<xy, uint, boost::hash<xy>> u_map;
+typedef pair<uint, uint> yx;
+typedef unordered_map<yx, uint, boost::hash<yx>> u_map;
 
 struct m {
   u_map map;
@@ -17,9 +18,9 @@ struct m {
   uint my = 0;
 };
 
-vector<xy> neighbors(xy point, uint mx, uint my, bool diag = false) {
-  vector<xy> neigh;
-  vector<xy> pairs;
+vector<yx> neighbors(yx point, uint mx, uint my, bool diag = false) {
+  vector<yx> neigh;
+  vector<yx> pairs;
   if (!diag)
     pairs = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
   else
@@ -36,7 +37,7 @@ vector<xy> neighbors(xy point, uint mx, uint my, bool diag = false) {
   return neigh;
 }
 
-vector<uint> fetch(u_map &map, vector<xy> points) {
+vector<uint> fetch(u_map &map, vector<yx> points) {
   vector<uint> v;
   for (auto point : points) {
     v.emplace_back(map[point]);
@@ -44,12 +45,39 @@ vector<uint> fetch(u_map &map, vector<xy> points) {
   return v;
 }
 
-bool lowest(m &map, xy point) {
+bool lowest(m &map, yx point) {
   auto neigh = neighbors(point, map.mx, map.my);
+  auto point_val = map.map[point];
+  // fmt::print("p: {}\n", point);
+  // fmt::print("pv: {}\n", point_val);
+  // fmt::print("nei: {}\n", neigh);
   auto vals = fetch(map.map, neigh);
+  // fmt::print("vals: {}\n", vals);
+  return all_of(vals.begin(), vals.end(),
+                [&](uint val) { return point_val < val; });
 }
 
-auto sol(string input) {
+uint size_basin(m &map, yx point) {
+  // fmt::print("p: {}\n", point);
+  vector<yx> npoints{point};
+
+  auto size = npoints.size();
+  for (size_t i = 0; i < size; i++) {
+    auto nn = neighbors(npoints[i], map.mx, map.my);
+    for (auto &&np : nn) {
+      if (map.map[np] != 9 && // not a basin
+          find(npoints.begin(), npoints.end(), np) ==
+              npoints.end() // first time finding this point
+      ) {
+        npoints.emplace_back(np);
+        size++;
+      }
+    }
+  }
+  return npoints.size();
+}
+
+auto sol(string input, bool second = false) {
   auto lines = split(input, '\n');
   m map;
   // uint mh = lines.size();
@@ -57,19 +85,48 @@ auto sol(string input) {
   uint h = 0;
   uint w = 0;
   for (auto &&line : lines) {
+    w = 0;
     for (char c : line) {
-      uint val = atoi(&c);
+      uint val = c - '0';
       map.map[make_pair(h, w)] = val;
       w++;
     }
     h++;
   }
-  return 0;
+
+  map.mx = h;
+  map.my = w;
+
+  uint answer = 0;
+  if (!second) {
+    for (auto &&it : map.map) {
+      if (lowest(map, it.first)) {
+        // fmt::print("point: {}, value: {}\n", it.first, it.second);
+        answer += it.second + 1;
+      }
+    }
+  } else {
+    answer = 1;
+    vector<uint> sizes;
+    for (auto &&it : map.map) {
+      if (lowest(map, it.first)) {
+        sizes.emplace_back(size_basin(map, it.first));
+      }
+    }
+    sort(sizes.begin(), sizes.end());
+    auto it = sizes.rbegin();
+    for (auto i = 0; i < 3; i++) {
+      answer *= *it;
+      it++;
+    }
+  }
+
+  return answer;
 }
 
 auto solve(string input) {
   auto p1 = sol(input);
-  auto p2 = sol(input);
+  auto p2 = sol(input, true);
 
   return make_pair(p1, p2);
 }
@@ -86,7 +143,7 @@ suite tests = [] {
     auto [p1, p2] = solve(example);
 
     expect(p1 == 15_i);
-    expect(p2 == 15_i);
+    expect(p2 == 1134_i);
   };
 };
 

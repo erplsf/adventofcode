@@ -48,7 +48,7 @@ if (Boost_ADDED)
   target_compile_definitions(Boost::boost INTERFACE BOOST_ALL_NO_LIB=1)
 endif()
 
-add_library(aoc_util src/2021/aoc/aoc.cpp)
+add_library(aoc_util src/2021/aoc/aoc.cpp src/2021/aoc/tdm.hpp)
 target_include_directories(aoc_util SYSTEM PUBLIC ${fmt_SOURCE_DIR}/include)
 target_link_libraries(aoc_util PRIVATE fmt)
 

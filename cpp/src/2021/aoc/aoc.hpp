@@ -58,4 +58,19 @@ template <typename value> struct fmt::formatter<vector<value>> {
   }
 };
 
+template <typename v1, typename v2> struct fmt::formatter<pair<v1, v2>> {
+  constexpr auto parse(format_parse_context &ctx) -> decltype(ctx.begin()) {
+    // Return an iterator past the end of the parsed range:
+    auto it = ctx.end();
+    return it++;
+  }
+
+  template <typename FormatContext>
+  auto format(const pair<v1, v2> &v, FormatContext &ctx)
+      -> decltype(ctx.out()) {
+    // ctx.out() is an output iterator to write to.
+    return format_to(ctx.out(), "({},{})", v.first, v.second);
+  }
+};
+
 #endif // AOC_H_
