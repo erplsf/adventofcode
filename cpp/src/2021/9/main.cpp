@@ -9,63 +9,26 @@ using namespace aoc;
 using namespace std;
 using namespace boost::ut;
 
-typedef pair<uint, uint> yx;
-typedef unordered_map<yx, uint, boost::hash<yx>> u_map;
-
-struct m {
-  u_map map;
-  uint mx = 0;
-  uint my = 0;
-};
-
-vector<yx> neighbors(yx point, uint mx, uint my, bool diag = false) {
-  vector<yx> neigh;
-  vector<yx> pairs;
-  if (!diag)
-    pairs = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
-  else
-    pairs = {{-1, 0},  {0, -1}, {1, 0},  {0, 1},
-             {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
-
-  for (auto pair : pairs) {
-    int nx = pair.first + point.first;
-    int ny = pair.second + point.second;
-    if ((nx >= 0 && (uint)nx < mx) && (ny >= 0 && (uint)ny < my))
-      neigh.emplace_back(make_pair(nx, ny));
-  }
-
-  return neigh;
-}
-
-vector<uint> fetch(u_map &map, vector<yx> points) {
-  vector<uint> v;
-  for (auto point : points) {
-    v.emplace_back(map[point]);
-  }
-  return v;
-}
-
-bool lowest(m &map, yx point) {
-  auto neigh = neighbors(point, map.mx, map.my);
-  auto point_val = map.map[point];
+bool lowest(tdm<uint> &map, rci point) {
+  auto vals = map.neighbour_values(point);
+  auto point_val = map.map[point.r][point.c];
   // fmt::print("p: {}\n", point);
   // fmt::print("pv: {}\n", point_val);
   // fmt::print("nei: {}\n", neigh);
-  auto vals = fetch(map.map, neigh);
   // fmt::print("vals: {}\n", vals);
   return all_of(vals.begin(), vals.end(),
-                [&](uint val) { return point_val < val; });
+                [&](uint &val) { return point_val < val; });
 }
 
-uint size_basin(m &map, yx point) {
+uint size_basin(tdm<uint> &map, rci point) {
   // fmt::print("p: {}\n", point);
-  vector<yx> npoints{point};
+  vector<rci> npoints{point};
 
   auto size = npoints.size();
   for (size_t i = 0; i < size; i++) {
-    auto nn = neighbors(npoints[i], map.mx, map.my);
-    for (auto &&np : nn) {
-      if (map.map[np] != 9 && // not a basin
+    auto nn = map.neighbour_points(npoints[i]);
+    for (rci np : nn) {
+      if (map.map[np.r][np.c] != 9 && // not a basin
           find(npoints.begin(), npoints.end(), np) ==
               npoints.end() // first time finding this point
       ) {
@@ -79,38 +42,44 @@ uint size_basin(m &map, yx point) {
 
 auto sol(string input, bool second = false) {
   auto lines = split(input, '\n');
-  m map;
+  tdm<uint> map;
   // uint mh = lines.size();
   // uint mw = lines[0].size();
   uint h = 0;
   uint w = 0;
+
   for (auto &&line : lines) {
     w = 0;
+    map.map.push_back(vector<uint>());
     for (char c : line) {
       uint val = c - '0';
-      map.map[make_pair(h, w)] = val;
+      map.map[h].emplace_back(val);
       w++;
     }
     h++;
   }
 
-  map.mx = h;
-  map.my = w;
+  map.max_c = w;
+  map.max_r = h;
 
   uint answer = 0;
   if (!second) {
-    for (auto &&it : map.map) {
-      if (lowest(map, it.first)) {
-        // fmt::print("point: {}, value: {}\n", it.first, it.second);
-        answer += it.second + 1;
+    for (size_t r = 0; r < map.max_r; r++) {
+      for (size_t c = 0; c < map.max_c; c++) {
+        if (lowest(map, {r, c})) {
+          // fmt::print("point: {}, value: {}\n", it.first, it.second);
+          answer += map.map[r][c] + 1;
+        }
       }
     }
   } else {
     answer = 1;
     vector<uint> sizes;
-    for (auto &&it : map.map) {
-      if (lowest(map, it.first)) {
-        sizes.emplace_back(size_basin(map, it.first));
+    for (size_t r = 0; r < map.max_r; r++) {
+      for (size_t c = 0; c < map.max_c; c++) {
+        if (lowest(map, {r, c})) {
+          sizes.emplace_back(size_basin(map, {r, c}));
+        }
       }
     }
     sort(sizes.begin(), sizes.end());
