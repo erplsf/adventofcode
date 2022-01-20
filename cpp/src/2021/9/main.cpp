@@ -11,23 +11,17 @@ using namespace boost::ut;
 
 bool lowest(tdm<uint> &map, rci point) {
   auto vals = map.neighbour_values(point);
-  auto point_val = map.map[point.r][point.c];
-  // fmt::print("p: {}\n", point);
-  // fmt::print("pv: {}\n", point_val);
-  // fmt::print("nei: {}\n", neigh);
-  // fmt::print("vals: {}\n", vals);
+  auto pval = map.map[point.r][point.c];
   return all_of(vals.begin(), vals.end(),
-                [&](uint &val) { return point_val < val; });
+                [&](uint &val) { return pval < val; });
 }
 
-uint size_basin(tdm<uint> &map, rci point) {
-  // fmt::print("p: {}\n", point);
+size_t size_basin(tdm<uint> &map, rci point) {
   vector<rci> npoints{point};
 
   auto size = npoints.size();
   for (size_t i = 0; i < size; i++) {
-    auto nn = map.neighbour_points(npoints[i]);
-    for (rci np : nn) {
+    for (auto &&np : map.neighbour_points(npoints[i])) {
       if (map.map[np.r][np.c] != 9 && // not a basin
           find(npoints.begin(), npoints.end(), np) ==
               npoints.end() // first time finding this point
@@ -43,33 +37,28 @@ uint size_basin(tdm<uint> &map, rci point) {
 auto sol(string input, bool second = false) {
   auto lines = split(input, '\n');
   tdm<uint> map;
-  // uint mh = lines.size();
-  // uint mw = lines[0].size();
-  uint h = 0;
-  uint w = 0;
 
-  for (auto &&line : lines) {
-    w = 0;
-    map.map.push_back(vector<uint>());
-    for (char c : line) {
+  size_t mr = lines.size();
+  size_t mc = lines[0].size();
+
+  map.max_c = mc;
+  map.max_r = mr;
+
+  for (size_t r = 0; r < lines.size(); r++) {
+    map.map.push_back(
+        vector<uint>()); // TODO: refactor this to a struct / funccal
+    for (auto &&c : lines[r]) {
       uint val = c - '0';
-      map.map[h].emplace_back(val);
-      w++;
+      map.map[r].emplace_back(val);
     }
-    h++;
   }
-
-  map.max_c = w;
-  map.max_r = h;
 
   uint answer = 0;
   if (!second) {
     for (size_t r = 0; r < map.max_r; r++) {
       for (size_t c = 0; c < map.max_c; c++) {
-        if (lowest(map, {r, c})) {
-          // fmt::print("point: {}, value: {}\n", it.first, it.second);
+        if (lowest(map, {r, c}))
           answer += map.map[r][c] + 1;
-        }
       }
     }
   } else {
@@ -77,9 +66,8 @@ auto sol(string input, bool second = false) {
     vector<uint> sizes;
     for (size_t r = 0; r < map.max_r; r++) {
       for (size_t c = 0; c < map.max_c; c++) {
-        if (lowest(map, {r, c})) {
+        if (lowest(map, {r, c}))
           sizes.emplace_back(size_basin(map, {r, c}));
-        }
       }
     }
     sort(sizes.begin(), sizes.end());

@@ -12,13 +12,19 @@ namespace aoc {
 struct rci {
   size_t r; // row
   size_t c; // column
+
+  inline bool operator==(const rci &rhs) const {
+    return r == rhs.r && c == rhs.c;
+  }
 };
 
 struct rc {
   int r; // row
   int c; // column
 
-  inline bool operator==(const rc &rhs);
+  inline bool operator==(const rc &rhs) const {
+    return r == rhs.r && c == rhs.c;
+  }
 };
 
 template <typename V> struct tdm {
@@ -41,22 +47,21 @@ template <typename V> struct tdm {
       pairs = span{CARDINAL};
 
     for (auto pair : pairs) {
-      int nr = pair.r + cr.r;
-      int nc = pair.c + cr.c;
-      if ((nr >= 0 && (size_t)nr < max_r) && (nc >= 0 && (size_t)nc < max_c))
-        neigh.emplace_back(make_pair(nc, nr));
+      decltype(rci::r) nr = pair.r + cr.r;
+      decltype(rci::c) nc = pair.c + cr.c;
+      if ((nr >= 0 && (decltype(rci::r))nr < max_r) &&
+          (nc >= 0 && (decltype(rci::c))nc < max_c))
+        neigh.emplace_back(rci{nr, nc});
     }
 
     return neigh;
   }
 
   vector<reference_wrapper<V>> neighbour_values(rci cr, bool diag = false) {
-    vector<rci> points = neighbour_points(cr, diag);
     vector<reference_wrapper<V>> values;
 
-    for (auto &&p : points) {
+    for (auto &&p : neighbour_points(cr, diag))
       values.emplace_back(ref(map[p.r][p.c]));
-    }
 
     return values;
   }
