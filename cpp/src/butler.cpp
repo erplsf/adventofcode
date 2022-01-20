@@ -9,7 +9,7 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   CLI::App app{R"(butler
 	Helper that downloads aoc inputs.)"};
 

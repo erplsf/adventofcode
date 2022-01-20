@@ -17,7 +17,7 @@ using namespace boost::ut;
 tuple<uint, uint> cb(vector<string> reports, uint col) { // most common bit
   array<uint, 2> counts{};
 
-  for (auto &&report : reports) {
+  for (auto&& report: reports) {
     auto pos = report[col] - 48;
     counts[pos] += 1;
   }
@@ -36,7 +36,7 @@ optional<uint> mcb(tuple<uint, uint> bits) {
 
 auto solve_p1(vector<string> reports) {
   vector<array<uint, 2>> nums;
-  for (auto &&line : reports) {
+  for (auto&& line: reports) {
     if (nums.size() != line.size()) {
       nums.reserve(line.size());
       for (uint i = 0; i < line.size(); i++) {
@@ -52,7 +52,7 @@ auto solve_p1(vector<string> reports) {
   // count
   vector<uint> gamma;
   vector<uint> epsilon;
-  for (auto &&col : nums) {
+  for (auto&& col: nums) {
     if (col[0] > col[1]) {
       gamma.emplace_back(0);
       epsilon.emplace_back(1);
@@ -149,7 +149,7 @@ suite tests = [] {
   };
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto contents = get_input(argc, argv);
   if (!contents)
     return 1;

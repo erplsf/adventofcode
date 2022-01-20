@@ -46,7 +46,7 @@ unsigned long long sim_two(vector<uint> input, uint t_days) {
   unordered_map<uint, unsigned long long> map;
   count += input.size();
 
-  for (uint cd : input) {
+  for (uint cd: input) {
     // cout << "first run: ";
     uint fs = cd + 1; // day when it will first spawn a new offspring (cooldown
                       // + 1)
@@ -55,7 +55,7 @@ unsigned long long sim_two(vector<uint> input, uint t_days) {
     // cout << "fs: " << fs << "\n";
 
     auto days = csp(fs, t_days);
-    for (uint day : days)
+    for (uint day: days)
       map[day] += 1;
     // then it goes in cycles
   }
@@ -73,7 +73,7 @@ unsigned long long sim_two(vector<uint> input, uint t_days) {
     // map[fs] += amount;
 
     auto days = ncsp(day, t_days);
-    for (uint d : days)
+    for (uint d: days)
       map[d] += amount;
   }
 
@@ -107,7 +107,7 @@ suite tests = [] {
   };
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto contents = get_input(argc, argv);
   if (!contents)
     return 1;

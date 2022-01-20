@@ -13,7 +13,7 @@ using namespace std;
 using namespace aoc;
 using namespace boost::ut;
 
-uint count_increases(const vector<uint> &mes, uint window) {
+uint count_increases(const vector<uint>& mes, uint window) {
   uint count = 0;
   uint i = 0;
   uint size = mes.size();
@@ -39,7 +39,7 @@ auto solve(string input) {
   auto lines = split(input, '\n');
   vector<uint> mes;
 
-  for (auto &&line : lines)
+  for (auto&& line: lines)
     mes.emplace_back(stoul(line));
   return make_tuple(count_increases(mes, 1), count_increases(mes, 3));
 }
@@ -64,7 +64,7 @@ suite tests = [] {
   };
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto contents = get_input(argc, argv);
   if (!contents)
     return 1;

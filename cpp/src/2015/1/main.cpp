@@ -16,7 +16,7 @@ string read_input(string path) {
   return "";
 }
 
-string resolve_input(int day, int argc, char **argv) {
+string resolve_input(int day, int argc, char** argv) {
   stringstream path;
   if (argc == 2) {
     path << argv[1];
@@ -28,7 +28,7 @@ string resolve_input(int day, int argc, char **argv) {
 
 constexpr const int DAY = 1;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   string path = resolve_input(DAY, argc, argv);
   string content = read_input(path);
 
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
   int floor = 0;
   uint index = 0;
   bool stop = false;
-  for (char &ch : content) {
+  for (char& ch: content) {
     if (ch == '(') {
       floor++;
     } else if (ch == ')') {

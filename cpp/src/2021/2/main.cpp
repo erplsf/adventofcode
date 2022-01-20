@@ -19,7 +19,7 @@ struct submarine {
   uint aim = 0;
 };
 
-void nav_two(submarine *sub, string command, uint distance) {
+void nav_two(submarine* sub, string command, uint distance) {
   switch (c_hash(command.c_str())) {
   case c_hash("forward"): {
     sub->hor += distance;
@@ -37,7 +37,7 @@ void nav_two(submarine *sub, string command, uint distance) {
   }
 }
 
-void nav_one(submarine *sub, string command, uint distance) {
+void nav_one(submarine* sub, string command, uint distance) {
   switch (c_hash(command.c_str())) {
   case c_hash("forward"): {
     sub->hor += distance;
@@ -58,7 +58,7 @@ auto solve(string input) {
   submarine sub_one;
   submarine sub_two;
   auto lines = split(input, '\n');
-  for (auto &&line : lines) {
+  for (auto&& line: lines) {
     auto parts = split(line, ' ');
 
     auto command = parts[0];
@@ -88,7 +88,7 @@ forward 2)";
   };
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto contents = get_input(argc, argv);
   if (!contents)
     return 1;

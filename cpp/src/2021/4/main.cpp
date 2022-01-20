@@ -23,7 +23,7 @@ struct board_set {
   board marks = {};
 };
 
-void print_board(board &board) {
+void print_board(board& board) {
   for (uint ri = 0; ri < B_SIZE; ri++) {
     for (uint ci = 0; ci < B_SIZE; ci++) {
       cout << setw(2) << board[ri][ci] << " ";
@@ -32,7 +32,7 @@ void print_board(board &board) {
   }
 }
 
-void read_row(board &board, uint ri, string row) {
+void read_row(board& board, uint ri, string row) {
   auto nums = split(row, ' ');
   nums.erase(
       remove_if(nums.begin(), nums.end(), [](string num) { return num == ""; }),
@@ -43,7 +43,7 @@ void read_row(board &board, uint ri, string row) {
   }
 }
 
-optional<tuple<uint, uint>> mark(board_set &bs, uint number) {
+optional<tuple<uint, uint>> mark(board_set& bs, uint number) {
   uint f_ri, f_ci;
   for (uint ri = 0; ri < B_SIZE; ri++) {
     for (uint ci = 0; ci < B_SIZE; ci++) {
@@ -58,7 +58,7 @@ optional<tuple<uint, uint>> mark(board_set &bs, uint number) {
   return nullopt;
 }
 
-bool filled(board &board, uint fixed, bool row) {
+bool filled(board& board, uint fixed, bool row) {
   // cout << "in filled"
   //      << "\n";
   // print_board(board);
@@ -78,11 +78,11 @@ bool filled(board &board, uint fixed, bool row) {
   }
 }
 
-bool filled(board &board, tuple<uint, uint> idx) {
+bool filled(board& board, tuple<uint, uint> idx) {
   return filled(board, get<0>(idx), true) || filled(board, get<1>(idx), false);
 }
 
-uint sum_unmarked(board_set &bs) {
+uint sum_unmarked(board_set& bs) {
   uint sum = 0;
 
   for (uint ri = 0; ri < B_SIZE; ri++) {
@@ -197,7 +197,7 @@ suite tests = [] {
   };
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto contents = get_input(argc, argv);
   if (!contents)
     return 1;

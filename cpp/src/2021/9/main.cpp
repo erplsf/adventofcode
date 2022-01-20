@@ -9,19 +9,19 @@ using namespace aoc;
 using namespace std;
 using namespace boost::ut;
 
-bool lowest(tdm<uint> &map, rci point) {
+bool lowest(tdm<uint>& map, rci point) {
   auto vals = map.neighbour_values(point);
   auto pval = map.map[point.r][point.c];
   return all_of(vals.begin(), vals.end(),
-                [&](uint &val) { return pval < val; });
+                [&](uint& val) { return pval < val; });
 }
 
-size_t size_basin(tdm<uint> &map, rci point) {
+size_t size_basin(tdm<uint>& map, rci point) {
   vector<rci> npoints{point};
 
   auto size = npoints.size();
   for (size_t i = 0; i < size; i++) {
-    for (auto &&np : map.neighbour_points(npoints[i])) {
+    for (auto&& np: map.neighbour_points(npoints[i])) {
       if (map.map[np.r][np.c] != 9 && // not a basin
           find(npoints.begin(), npoints.end(), np) ==
               npoints.end() // first time finding this point
@@ -47,7 +47,7 @@ auto sol(string input, bool second = false) {
   for (size_t r = 0; r < lines.size(); r++) {
     map.map.push_back(
         vector<uint>()); // TODO: refactor this to a struct / funccal
-    for (auto &&c : lines[r]) {
+    for (auto&& c: lines[r]) {
       uint val = c - '0';
       map.map[r].emplace_back(val);
     }
@@ -104,7 +104,7 @@ suite tests = [] {
   };
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto contents = get_input(argc, argv);
   if (!contents)
     return 1;

@@ -16,8 +16,8 @@ typedef uint64_t ull;
 struct sn {
   ull value;
   ull level;
-  sn *left;
-  sn *right;
+  sn* left;
+  sn* right;
 };
 
 auto parse(string input) {
@@ -25,7 +25,7 @@ auto parse(string input) {
   num = new sn();
   curr_sn = num;
   ull level = 0;
-  for (auto &&c : input) {
+  for (auto&& c: input) {
     switch (c) {
     case '[': {
       level++;
@@ -54,7 +54,7 @@ auto parse(string input) {
 // void plsn(sn &num) {
 // }
 
-void psn(string &s, sn &num, ull prev_level = 0, ull sl = 0) {
+void psn(string& s, sn& num, ull prev_level = 0, ull sl = 0) {
   // fmt::print("{}", num.level - prev_level);
   int64_t diff = num.level - prev_level;
   if (diff > 0) {
@@ -80,7 +80,7 @@ void psn(string &s, sn &num, ull prev_level = 0, ull sl = 0) {
   }
 }
 
-string o_psn(sn &num) {
+string o_psn(sn& num) {
   string s;
   psn(s, num);
   return s;
@@ -90,7 +90,7 @@ auto solve(string) { return make_pair(0, 0); }
 
 suite tests = [] {
   test("example") = [] {
-    sn *num;
+    sn* num;
     string inp;
 
     num = parse("[1,2]");
@@ -110,7 +110,7 @@ suite tests = [] {
   };
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto contents = get_input(argc, argv);
   if (!contents)
     return 1;

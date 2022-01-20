@@ -16,14 +16,14 @@ typedef unordered_map<dset, uint, boost::hash<dset>> u_map;
 typedef unordered_map<uint, dset> ru_map;
 
 template <> struct fmt::formatter<dset> {
-  constexpr auto parse(format_parse_context &ctx) -> decltype(ctx.begin()) {
+  constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
     // Return an iterator past the end of the parsed range:
     auto it = ctx.end();
     return it++;
   }
 
   template <typename FormatContext>
-  auto format(const dset &s, FormatContext &ctx) -> decltype(ctx.out()) {
+  auto format(const dset& s, FormatContext& ctx) -> decltype(ctx.out()) {
     // ctx.out() is an output iterator to write to.
     auto o = format_to(ctx.out(), "|");
     for (auto it = s.begin(); it != s.end(); it++) {
@@ -37,14 +37,14 @@ template <> struct fmt::formatter<dset> {
 };
 
 template <> struct fmt::formatter<u_map> {
-  constexpr auto parse(format_parse_context &ctx) -> decltype(ctx.begin()) {
+  constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
     // Return an iterator past the end of the parsed range:
     auto it = ctx.end();
     return it++;
   }
 
   template <typename FormatContext>
-  auto format(const u_map &map, FormatContext &ctx) -> decltype(ctx.out()) {
+  auto format(const u_map& map, FormatContext& ctx) -> decltype(ctx.out()) {
     // ctx.out() is an output iterator to write to.
     auto o = format_to(ctx.out(), "{{\n");
     for (auto it = map.begin(); it != map.end(); it++) {
@@ -58,14 +58,14 @@ template <> struct fmt::formatter<u_map> {
 };
 
 template <> struct fmt::formatter<ru_map> {
-  constexpr auto parse(format_parse_context &ctx) -> decltype(ctx.begin()) {
+  constexpr auto parse(format_parse_context& ctx) -> decltype(ctx.begin()) {
     // Return an iterator past the end of the parsed range:
     auto it = ctx.end();
     return it++;
   }
 
   template <typename FormatContext>
-  auto format(const ru_map &map, FormatContext &ctx) -> decltype(ctx.out()) {
+  auto format(const ru_map& map, FormatContext& ctx) -> decltype(ctx.out()) {
     // ctx.out() is an output iterator to write to.
     auto o = format_to(ctx.out(), "{{\n");
     for (auto it = map.begin(); it != map.end(); it++) {
@@ -78,8 +78,8 @@ template <> struct fmt::formatter<ru_map> {
   }
 };
 
-void simple_find(vector<dset> &numbers, uint segment_size, uint actual_number,
-                 u_map &um, ru_map &rum) {
+void simple_find(vector<dset>& numbers, uint segment_size, uint actual_number,
+                 u_map& um, ru_map& rum) {
   auto val = find_if(numbers.begin(), numbers.end(),
                      [&](dset ds) { return ds.size() == segment_size; });
 
@@ -89,7 +89,7 @@ void simple_find(vector<dset> &numbers, uint segment_size, uint actual_number,
   }
 }
 
-auto oracle(vector<dset> &numbers) {
+auto oracle(vector<dset>& numbers) {
   u_map map;
   ru_map rmap;
 
@@ -183,7 +183,7 @@ auto oracle(vector<dset> &numbers) {
   return make_pair(map, rmap);
 }
 
-uint resolve(u_map &map, string &digits) {
+uint resolve(u_map& map, string& digits) {
   dset ds(digits.begin(), digits.end());
   return map[ds];
 }
@@ -192,7 +192,7 @@ auto sol(string input, bool second_part = false) {
   auto lines = split(input, '\n');
   uint answer = 0;
   // cout << "s: " << lines.size() << "\n";
-  for (auto &&line : lines) {
+  for (auto&& line: lines) {
     // cout << "l: " << line;
     auto parts = split(line, '|');
     // cout << "s: " << parts.size() << "\n";
@@ -201,7 +201,7 @@ auto sol(string input, bool second_part = false) {
     trim(left);
     auto puzzle_digits = split(left, ' ');
     vector<dset> dsets;
-    for (auto &&digit : puzzle_digits) {
+    for (auto&& digit: puzzle_digits) {
       dset ds(digit.begin(), digit.end());
       dsets.emplace_back(ds);
     }
@@ -213,7 +213,7 @@ auto sol(string input, bool second_part = false) {
     auto digits = split(right, ' ');
 
     if (!second_part) {
-      for (auto &&digit : digits) {
+      for (auto&& digit: digits) {
         auto value = resolve(map, digit);
         if (value == 1 || value == 4 || value == 7 || value == 8) {
           answer++;
@@ -261,7 +261,7 @@ gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce
   };
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto contents = get_input(argc, argv);
   if (!contents)
     return 1;

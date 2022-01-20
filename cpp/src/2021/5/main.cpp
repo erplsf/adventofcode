@@ -19,10 +19,10 @@ using namespace boost::ut;
 typedef unordered_map<pair<uint, uint>, uint, boost::hash<pair<uint, uint>>>
     u_map;
 
-void print_map(u_map &map) {
+void print_map(u_map& map) {
   uint max_x = 0;
   uint max_y = 0;
-  for (auto &&kv : map) {
+  for (auto&& kv: map) {
     if (kv.first.first > max_x)
       max_x = kv.first.first;
     if (kv.first.second > max_y)
@@ -42,7 +42,7 @@ void print_map(u_map &map) {
   }
 }
 
-void step(uint &v, uint t) {
+void step(uint& v, uint t) {
   int dv = v - t;
   if (dv != 0) {
     int s = (dv < 0) ? 1 : -1;
@@ -53,7 +53,7 @@ void step(uint &v, uint t) {
 auto solve(string input, bool p1) {
   u_map map;
   auto lines = split(input, '\n');
-  for (auto &&line : lines) {
+  for (auto&& line: lines) {
     // cout << "line: " << line << "\n";
     auto parts = split(line, "->");
     auto begin = parts[0];
@@ -90,7 +90,7 @@ auto solve(string input, bool p1) {
   // cout << "\n";
 
   uint total = 0;
-  for (auto &&kv : map) {
+  for (auto&& kv: map) {
     if (kv.second >= 2) {
       // cout << "first: " << kv.first.first << "," << kv.first.second
       //      << " second: " << kv.second << "\n";
@@ -128,7 +128,7 @@ suite tests = [] {
   };
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto contents = get_input(argc, argv);
   if (!contents)
     return 1;

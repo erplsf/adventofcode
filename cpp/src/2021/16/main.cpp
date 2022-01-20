@@ -61,13 +61,13 @@ string htob(char c) {
 
 string convert(const string input) {
   string out;
-  for (auto &&c : input) {
+  for (auto&& c: input) {
     out += htob(c);
   }
   return out;
 }
 
-uint64_t decode(const string &input, uint64_t start, uint64_t length) {
+uint64_t decode(const string& input, uint64_t start, uint64_t length) {
   return stoull(input.substr(start, length), nullptr, 2);
 }
 
@@ -201,7 +201,7 @@ pair<packet, uint> parse_packet(const string input, bool need_decode = true) {
   return make_pair(pkt, i);
 }
 
-uint64_t sov(const packet &pkt) { // sum of versions
+uint64_t sov(const packet& pkt) { // sum of versions
   uint64_t sum = 0;
   sum += pkt.version;
   if (auto val = get_if<vector<packet>>(&pkt.data))
@@ -306,7 +306,7 @@ suite tests = [] {
   };
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto contents = get_input(argc, argv);
   if (!contents)
     return 1;

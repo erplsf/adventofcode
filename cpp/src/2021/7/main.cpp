@@ -12,13 +12,13 @@ using namespace boost::ut;
 vector<uint> parse(string input) {
   vector<uint> crabs;
   auto parts = split(input, ',');
-  for (auto &&crab : parts)
+  for (auto&& crab: parts)
     crabs.emplace_back(stoul(crab));
 
   return crabs;
 }
 
-auto median(vector<uint> &v) {
+auto median(vector<uint>& v) {
   size_t n = v.size() / 2;
   nth_element(v.begin(), v.begin() + n, v.end());
   return v[n];
@@ -42,7 +42,7 @@ uint mcost(uint d) {
   }
 }
 
-void pv(vector<uint> const &v) {
+void pv(vector<uint> const& v) {
   cout << "[";
   for (uint i = 0; i < v.size(); i++) {
     if (i + 1 == v.size())
@@ -53,12 +53,12 @@ void pv(vector<uint> const &v) {
   cout << "]\n";
 }
 
-uint min(vector<uint> &v) {
+uint min(vector<uint>& v) {
   auto min = min_element(v.begin(), v.end());
   return v[distance(v.begin(), min)];
 }
 
-uint max(vector<uint> &v) {
+uint max(vector<uint>& v) {
   auto max = max_element(v.begin(), v.end());
   return v[distance(v.begin(), max)];
 }
@@ -67,7 +67,7 @@ uint solve(vector<uint> crabs, bool p1) {
   if (p1) {
     auto med = median(crabs);
     uint cost = 0;
-    for (auto crab : crabs)
+    for (auto crab: crabs)
       cost += abs((int)(crab - med));
     return cost;
   } else {
@@ -117,7 +117,7 @@ suite tests = [] {
   };
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto contents = get_input(argc, argv);
   if (!contents)
     return 1;

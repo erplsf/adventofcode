@@ -70,7 +70,7 @@ char match(char c) {
   return '!';
 }
 
-void pv(vector<uint> const &v) {
+void pv(vector<uint> const& v) {
   cout << "[";
   for (uint i = 0; i < v.size(); i++) {
     if (i + 1 == v.size())
@@ -80,7 +80,7 @@ void pv(vector<uint> const &v) {
   }
   cout << "]\n";
 }
-void pv(vector<char> const &v) {
+void pv(vector<char> const& v) {
   cout << "- ";
   for (uint i = 0; i < v.size(); i++) {
     if (i + 1 == v.size())
@@ -105,7 +105,7 @@ uint score_incomplete(char c) {
   return 0;
 }
 
-uint64_t median(vector<uint64_t> &v) {
+uint64_t median(vector<uint64_t>& v) {
   size_t n = v.size() / 2;
   nth_element(v.begin(), v.begin() + n, v.end());
   return v[n];
@@ -116,7 +116,7 @@ uint64_t solve(string input, bool p1) {
   uint corrupted_sum = 0;
   vector<uint64_t> incomplete_sums;
 
-  for (auto &&line : lines) {
+  for (auto&& line: lines) {
     vector<char> stack;
     uint64_t incomplete_sum = 0;
     uint i = 0;
@@ -191,7 +191,7 @@ suite tests = [] {
   };
 };
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   auto contents = get_input(argc, argv);
   if (!contents)
     return 1;
