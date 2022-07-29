@@ -3,4 +3,4 @@
     overlays = [ (import ./zig-overlay.nix) ];
   } }:
 
-pkgs.mkShell { buildInputs = with pkgs; [ zig ]; }
+pkgs.mkShell { buildInputs = with pkgs; [ zig zls ]; }

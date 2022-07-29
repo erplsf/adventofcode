@@ -14,4 +14,17 @@ self: super: {
     buildInputs = [ super.libxml2 super.zlib ]
       ++ (with super.llvmPackages_14; [ libclang lld llvm ]);
   });
+  zls = super.zls.overrideAttrs (old: {
+    version = "0.10.0";
+
+    src = super.fetchFromGitHub {
+      owner = "zigtools";
+      repo = "zls";
+      rev = "cf8baa35860b1cf0ed970e160a80f5be390b0835";
+      sha256 = "sha256-1UP9+OM0eBaHZ7Y8f1qtA8xc1YF158TMWN1NjyCx6SE=";
+      fetchSubmodules = true;
+    };
+
+    nativeBuildInputs = [ self.zig ];
+  });
 }
