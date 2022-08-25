@@ -78,6 +78,7 @@ fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     var roboSanta = Walker().init(allocator);
     defer roboSanta.deinit();
 
+    // HACK: why this needs to be an array of pointers? if it's a regular array of Walker(), it leaks memory
     var walkers: [2]*Walker() = undefined;
     walkers[0] = &newSanta;
     walkers[1] = &roboSanta;
