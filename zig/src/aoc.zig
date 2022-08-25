@@ -12,11 +12,12 @@ pub const AocError = error{
     InputParseProblem,
 };
 
-
+/// Because usual interface is not nice to use. See https://github.com/ziglang/zig/issues/4437 for reference.
 pub fn expectEqual(expected: anytype, actual: anytype) !void {
     try std.testing.expectEqual(@as(@TypeOf(actual), expected), actual);
 }
 
+/// Caller is expected to call allocator.free() on a returned slice!
 pub fn readFile(allocator: std.mem.Allocator) ![]const u8 {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
