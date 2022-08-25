@@ -1,11 +1,12 @@
 const std = @import("std");
+const aoc = @import("aoc");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
     defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
 
-    const input = try readFile(allocator);
+    const input = try aoc.readFile(allocator);
     defer allocator.free(input);
 
     const answer = try solve(input);
@@ -13,34 +14,7 @@ pub fn main() !void {
     std.log.info("Index when basement is reached: {d}", .{answer.part_2});
 }
 
-const Solution = struct {
-    part_1: isize,
-    part_2: usize,
-};
-
-const AocError = error{
-    NoArgumentProvided,
-    InputParseProblem,
-};
-
-fn readFile(allocator: std.mem.Allocator) ![]const u8 {
-    const args = try std.process.argsAlloc(allocator);
-    defer std.process.argsFree(allocator, args);
-    if (args.len > 1) {
-        const path = try std.fs.realpathAlloc(allocator, args[1]);
-        defer allocator.free(path);
-
-        const file = try std.fs.openFileAbsolute(path, .{});
-        defer file.close();
-
-        const size = (try file.stat()).size;
-        const buffer = try allocator.alloc(u8, size);
-        try file.reader().readNoEof(buffer);
-
-        return buffer;
-    }
-    return AocError.NoArgumentProvided;
-}
+const Solution = aoc.Solution(isize, usize);
 
 fn solve(path: []const u8) !Solution {
     var floor: isize = 0;
@@ -49,7 +23,7 @@ fn solve(path: []const u8) !Solution {
         floor += @as(isize, switch (char) {
             '(' => 1,
             ')' => -1,
-            else => return AocError.InputParseProblem,
+            else => return aoc.AocError.InputParseProblem,
         });
         if (floor == -1 and basement_index == 0) basement_index = (index + 1);
     }

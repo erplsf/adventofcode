@@ -17,6 +17,7 @@ pub fn build(b: *std.build.Builder) anyerror!void {
     const mode = b.standardReleaseOptions();
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
     var tests = std.ArrayList(*std.build.LibExeObjStep).init(allocator);
@@ -24,9 +25,12 @@ pub fn build(b: *std.build.Builder) anyerror!void {
 
     for (solutions) |day| {
         const name = try std.fmt.allocPrint(allocator, "2015-{s}", .{day});
+        defer allocator.free(name);
         const path = try std.fmt.allocPrint(allocator, "src/2015/{s}.zig", .{day});
+        defer allocator.free(path);
 
         const exe = b.addExecutable(name, path);
+        exe.addPackagePath("aoc", "src/aoc.zig");
         exe.setTarget(target);
         exe.setBuildMode(mode);
         exe.install();
@@ -38,10 +42,12 @@ pub fn build(b: *std.build.Builder) anyerror!void {
         }
 
         const run_step_name = try std.fmt.allocPrint(allocator, "2015-{s}", .{day});
+        defer allocator.free(run_step_name);
         const run_step = b.step(run_step_name, "Run the app");
         run_step.dependOn(&run_cmd.step);
 
         const exe_tests = b.addTest(path);
+        exe_tests.addPackagePath("aoc", "src/aoc.zig");
         exe_tests.setTarget(target);
         exe_tests.setBuildMode(mode);
         try tests.append(exe_tests);
