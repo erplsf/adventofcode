@@ -2,7 +2,7 @@ const std = @import("std");
 
 const solutions = [_][]const u8{
     "1",
-    "2",
+    // "2",
 };
 
 pub fn build(b: *std.build.Builder) anyerror!void {
