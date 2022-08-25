@@ -1,8 +1,10 @@
 const std = @import("std");
 
-const solutions = [_][]const u8{
-    "1",
-    // "2",
+const Solution = struct {
+    year: u16,
+    day: u8,
+    solution_name: []const u8,
+    relative_path: []const u8,
 };
 
 pub fn build(b: *std.build.Builder) anyerror!void {
@@ -20,16 +22,58 @@ pub fn build(b: *std.build.Builder) anyerror!void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
+    var solutions = std.ArrayList(Solution).init(allocator);
+    defer {
+        for (solutions.items) |solution| {
+            allocator.free(solution.solution_name);
+            allocator.free(solution.relative_path);
+        }
+        solutions.deinit();
+    }
+
     var tests = std.ArrayList(*std.build.LibExeObjStep).init(allocator);
     defer tests.deinit();
 
-    for (solutions) |day| {
-        const name = try std.fmt.allocPrint(allocator, "2015-{s}", .{day});
-        defer allocator.free(name);
-        const path = try std.fmt.allocPrint(allocator, "src/2015/{s}.zig", .{day});
-        defer allocator.free(path);
+    var dir = try std.fs.cwd().openIterableDir("src", .{});
+    defer dir.close();
 
-        const exe = b.addExecutable(name, path);
+    var iter = dir.iterate();
+    while (try iter.next()) |entry| {
+        // std.debug.print("name: {s} kind: {}\n", .{entry.name, entry.kind});
+        if (entry.kind == .Directory) {
+            // entry is a year
+            const year_dir_path = try std.fmt.allocPrint(allocator, "src/{s}", .{entry.name});
+            defer allocator.free(year_dir_path);
+
+            const year_dir_realpath = try std.fs.realpathAlloc(allocator, year_dir_path);
+            defer allocator.free(year_dir_realpath);
+
+            var year_dir = try std.fs.openIterableDirAbsolute(year_dir_realpath, .{});
+            defer year_dir.close();
+
+            var year_iter = year_dir.iterate();
+            while (try year_iter.next()) |day_entry| {
+                if (day_entry.kind == .File) {
+                    const year = try std.fmt.parseUnsigned(u16, entry.name, 10);
+                    const day_part = std.mem.trimRight(u8, day_entry.name, ".zig");
+                    const day = try std.fmt.parseUnsigned(u8, day_part, 10);
+                    const solution_name = try std.fmt.allocPrint(allocator, "{s}-{s}", .{entry.name, day_part});
+                    const path = try std.fmt.allocPrint(allocator, "src/{s}/{s}", .{entry.name, day_entry.name});
+                    try solutions.append(.{
+                        .year = year,
+                        .day = day,
+                        .solution_name = solution_name,
+                        .relative_path = path,
+                    });
+                }
+            }
+        }
+    }
+
+    for (solutions.items) |solution| {
+        // std.debug.print("{d} {d} {s} {s}\n", solution);
+        const exe = b.addExecutable(solution.solution_name, solution.relative_path);
+
         exe.addPackagePath("aoc", "src/aoc.zig");
         exe.setTarget(target);
         exe.setBuildMode(mode);
@@ -41,18 +85,15 @@ pub fn build(b: *std.build.Builder) anyerror!void {
             run_cmd.addArgs(args);
         }
 
-        const run_step_name = try std.fmt.allocPrint(allocator, "2015-{s}", .{day});
-        defer allocator.free(run_step_name);
-        const run_step = b.step(run_step_name, "Run the app");
+        const run_step = b.step(solution.solution_name, solution.solution_name);
         run_step.dependOn(&run_cmd.step);
 
-        const exe_tests = b.addTest(path);
+        const exe_tests = b.addTest(solution.relative_path);
         exe_tests.addPackagePath("aoc", "src/aoc.zig");
         exe_tests.setTarget(target);
         exe_tests.setBuildMode(mode);
         try tests.append(exe_tests);
     }
-
 
     const test_step = b.step("test", "Run unit tests");
     for (tests.items) |exe_test| {

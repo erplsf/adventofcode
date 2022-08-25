@@ -17,10 +17,10 @@ pub fn main() !void {
 
 const Solution = aoc.Solution(isize, usize);
 
-fn solve(path: []const u8) !Solution {
+fn solve(input: []const u8) !Solution {
     var floor: isize = 0;
     var basement_index: usize = 0;
-    for (path) |char, index| {
+    for (input) |char, index| {
         floor += @as(isize, switch (char) {
             '(' => 1,
             ')' => -1,
