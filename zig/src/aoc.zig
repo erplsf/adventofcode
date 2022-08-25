@@ -12,6 +12,11 @@ pub const AocError = error{
     InputParseProblem,
 };
 
+
+pub fn expectEqual(expected: anytype, actual: anytype) !void {
+    try std.testing.expectEqual(@as(@TypeOf(actual), expected), actual);
+}
+
 pub fn readFile(allocator: std.mem.Allocator) ![]const u8 {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);

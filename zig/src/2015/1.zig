@@ -1,5 +1,6 @@
 const std = @import("std");
 const aoc = @import("aoc");
+const expectEqual = aoc.expectEqual;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -31,19 +32,19 @@ fn solve(path: []const u8) !Solution {
 }
 
 test "Part 1" {
-    try std.testing.expectEqual((solve("(())") catch unreachable).part_1, 0);
-    try std.testing.expectEqual((solve("()()") catch unreachable).part_1, 0);
-    try std.testing.expectEqual((solve("(((") catch unreachable).part_1, 3);
-    try std.testing.expectEqual((solve("(()(()(") catch unreachable).part_1, 3);
-    try std.testing.expectEqual((solve("))(((((") catch unreachable).part_1, 3);
-    try std.testing.expectEqual((solve("())") catch unreachable).part_1, -1);
-    try std.testing.expectEqual((solve("))(") catch unreachable).part_1, -1);
-    try std.testing.expectEqual((solve("))(") catch unreachable).part_1, -1);
-    try std.testing.expectEqual((solve(")))") catch unreachable).part_1, -3);
-    try std.testing.expectEqual((solve(")())())") catch unreachable).part_1, -3);
+    try expectEqual(0, (solve("(())") catch unreachable).part_1);
+    try expectEqual(0, (solve("()()") catch unreachable).part_1);
+    try expectEqual(3, (solve("(((") catch unreachable).part_1);
+    try expectEqual(3, (solve("(()(()(") catch unreachable).part_1);
+    try expectEqual(3, (solve("))(((((") catch unreachable).part_1);
+    try expectEqual(-1, (solve("())") catch unreachable).part_1);
+    try expectEqual(-1, (solve("))(") catch unreachable).part_1);
+    try expectEqual(-1, (solve("))(") catch unreachable).part_1);
+    try expectEqual(-3, (solve(")))") catch unreachable).part_1);
+    try expectEqual(-3, (solve(")())())") catch unreachable).part_1);
 }
 
 test "Part 2" {
-    try std.testing.expectEqual((solve(")") catch unreachable).part_2, 1);
-    try std.testing.expectEqual((solve("()())") catch unreachable).part_2, 5);
+    try expectEqual(1, (solve(")") catch unreachable).part_2);
+    try expectEqual(5, (solve("()())") catch unreachable).part_2);
 }
