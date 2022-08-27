@@ -53,7 +53,6 @@ pub fn Walker() type {
 }
 
 fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
-    _ = input;
     var part_1: usize = 0;
     var part_2: usize = 0;
 

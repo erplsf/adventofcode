@@ -5,8 +5,8 @@ self: super: {
     src = super.fetchFromGitHub {
       owner = "ziglang";
       repo = "zig";
-      rev = "fdaf9c40d6a351477aacb1af27871f3de12d485e";
-      sha256 = "sha256-tV6vGH1rBB9I5blcMVS+P4uL/nOx/HCag8ooLNgJ6o4=";
+      rev = "8bcb962ada2ea5cfeeff303e1063937ee13af6ad";
+      sha256 = "sha256-DPv/Y/b867lbWBHNMUxTfNClSnck9hz/JNWZFVcDI8U=";
     };
 
     nativeBuildInputs = [ super.cmake super.llvmPackages_14.llvm.dev ];
@@ -20,8 +20,8 @@ self: super: {
     src = super.fetchFromGitHub {
       owner = "zigtools";
       repo = "zls";
-      rev = "cf8baa35860b1cf0ed970e160a80f5be390b0835";
-      sha256 = "sha256-1UP9+OM0eBaHZ7Y8f1qtA8xc1YF158TMWN1NjyCx6SE=";
+      rev = "2ac8ab6ce92869c71aaf774417e02ed5bc753c52";
+      sha256 = "sha256-KeBmn/fXFMleWheGouLrMmbUrb8zgvXeG9hELlEJqM4=";
       fetchSubmodules = true;
     };
 
