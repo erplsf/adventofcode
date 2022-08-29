@@ -25,7 +25,7 @@ fn solve(input: []const u8) !Solution {
 }
 
 test "Part 1" {
+    try expectEqual(0, 0);
 }
 
-test "Part 2" {
-}
+test "Part 2" {}

@@ -13,8 +13,8 @@ pub fn main() !void {
 
     var input = try aoc.readFile(allocator);
     defer allocator.free(input);
-
     input = std.mem.trimRight(u8, input, "\n");
+
     std.log.info("Input is: {s}", .{input});
 
     const part_1 = try solve(input, 5);
@@ -44,5 +44,4 @@ test "Part 1" {
     try expectEqual(1048970, (solve("pqrstuv", 5) catch unreachable));
 }
 
-test "Part 2" {
-}
+// test "Part 2" {}

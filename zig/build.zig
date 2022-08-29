@@ -4,6 +4,7 @@ const Solution = struct {
     year: u16,
     day: u8,
     solution_name: []const u8,
+    solution_test_name: []const u8,
     relative_path: []const u8,
 };
 
@@ -27,6 +28,7 @@ pub fn build(b: *std.build.Builder) anyerror!void {
         for (solutions.items) |solution| {
             allocator.free(solution.solution_name);
             allocator.free(solution.relative_path);
+            allocator.free(solution.solution_test_name);
         }
         solutions.deinit();
     }
@@ -58,11 +60,13 @@ pub fn build(b: *std.build.Builder) anyerror!void {
                     const day_part = std.mem.trimRight(u8, day_entry.name, ".zig");
                     const day = try std.fmt.parseUnsigned(u8, day_part, 10);
                     const solution_name = try std.fmt.allocPrint(allocator, "{s}-{s}", .{entry.name, day_part});
+                    const solution_test_name = try std.fmt.allocPrint(allocator, "{s}-{s}-test", .{entry.name, day_part});
                     const path = try std.fmt.allocPrint(allocator, "src/{s}/{s}", .{entry.name, day_entry.name});
                     try solutions.append(.{
                         .year = year,
                         .day = day,
                         .solution_name = solution_name,
+                        .solution_test_name = solution_test_name,
                         .relative_path = path,
                     });
                 }
@@ -92,6 +96,9 @@ pub fn build(b: *std.build.Builder) anyerror!void {
         exe_tests.addPackagePath("aoc", "src/aoc.zig");
         exe_tests.setTarget(target);
         exe_tests.setBuildMode(mode);
+
+        const one_test_step = b.step(solution.solution_test_name, "Run unit tests");
+        one_test_step.dependOn(&exe_tests.step);
         try tests.append(exe_tests);
     }
 
