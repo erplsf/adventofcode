@@ -5,8 +5,8 @@ self: super: {
     src = super.fetchFromGitHub {
       owner = "ziglang";
       repo = "zig";
-      rev = "8bcb962ada2ea5cfeeff303e1063937ee13af6ad";
-      sha256 = "sha256-DPv/Y/b867lbWBHNMUxTfNClSnck9hz/JNWZFVcDI8U=";
+      rev = "0f27836c218ee84f5fb7d4c47dd93a920663c037";
+      sha256 = "sha256-z0RvK+OacQhSvLHZ+94EN6QqHstPEKbdLrlN4G1EN6A=";
     };
 
     nativeBuildInputs = [ super.cmake super.llvmPackages_14.llvm.dev ];
