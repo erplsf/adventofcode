@@ -35,12 +35,12 @@ const Circuit = struct {
     pub fn deinit(self: *Circuit) void {
         for (self.map.values()) |exp| {
             switch(exp) {
-                .@"and", .@"or", .lshift, .rshift => |ie| {
-                    self.allocator.destroy(&ie[0].*);
-                    self.allocator.destroy(&ie[1].*);
+                .@"and", .@"or", .lshift, .rshift => |_| {
+                    // self.allocator.destroy(&ie[0].*);
+                    // self.allocator.destroy(&ie[1].*);
                 },
-                .not => |ie| {
-                    self.allocator.destroy(&ie[0].*);
+                .not => |_| {
+                    // self.allocator.destroy(&ie[0].*);
                 },
                 .value => {},
                 else => unreachable,
@@ -55,27 +55,28 @@ const Circuit = struct {
         while (it.next()) |line| {
             try self.parseLine(line);
         }
+        try self.resolve();
     }
 
-    pub fn resolve(self: *Circuit) !void {
+    fn resolve(self: *Circuit) !void {
         for (self.map.values()) |exp| {
             switch (exp) {
                 .@"and", .@"or", .lshift, .rshift => |ie| {
                     if (ie[0].* == Expression.name) {
                         const name = ie[0].name;
-                        self.allocator.destroy(&ie[0].*);
+                        // self.allocator.destroy(&ie[0].*);
                         ie[0].* = self.map.get(name).?;
                     }
                     if (ie[1].* == Expression.name) {
                         const name = ie[1].name;
-                        self.allocator.destroy(&ie[1].*);
+                        // self.allocator.destroy(&ie[1].*);
                         ie[1].* = self.map.get(name).?;
                     }
                 },
                 .not => |ie| {
                     if (ie[0].* == Expression.name) {
                         const name = ie[0].name;
-                        self.allocator.destroy(&ie[0].*);
+                        // self.allocator.destroy(&ie[0].*);
                         ie[0].* = self.map.get(name).?;
                     }
                 },
@@ -87,7 +88,7 @@ const Circuit = struct {
 
     pub fn process(self: *Circuit) void {
         for (self.map.values()) |*exp| {
-            _ = exp.eval(self.allocator);
+            _ = exp.eval();
         }
     }
 
@@ -120,31 +121,16 @@ const Circuit = struct {
         rshift: [2]*Expression,
         not: [1]*Expression,
 
-        pub fn deinit(self: *Expression, allocator: std.mem.Allocator) void {
-            switch(self.*) {
-                .@"and", .@"or", .lshift, .rshift => |ie| {
-                    allocator.destroy(&ie[0].*);
-                    allocator.destroy(&ie[1].*);
-                },
-                .not => |ie| {
-                    allocator.destroy(&ie[0].*);
-                },
-                .value => {},
-                else => unreachable,
-            }
-        }
-
-        pub fn eval(self: *Expression, allocator: std.mem.Allocator) u16 {
+        pub fn eval(self: *Expression) u16 {
             const res = switch(self.*) {
-                .@"and" => |ex| ex[0].eval(allocator) & ex[1].eval(allocator),
-                .@"or" => |ex| ex[0].eval(allocator) | ex[1].eval(allocator),
-                .lshift => |ex| ex[0].eval(allocator) << @intCast(u4, ex[1].eval(allocator)),
-                .rshift => |ex| ex[0].eval(allocator) >> @intCast(u4, ex[1].eval(allocator)),
-                .not => |ex| ~ ex[0].eval(allocator),
+                .@"and" => |ex| ex[0].eval() & ex[1].eval(),
+                .@"or" => |ex| ex[0].eval() | ex[1].eval(),
+                .lshift => |ex| ex[0].eval() << @intCast(u4, ex[1].eval()),
+                .rshift => |ex| ex[0].eval() >> @intCast(u4, ex[1].eval()),
+                .not => |ex| ~ ex[0].eval(),
                 .value => |ex| ex, // we already covered it in a branch above
                 .name => unreachable, // we should never try to call eval on an expression with string
             };
-            self.deinit(allocator);
             self.* = .{ .value = res }; // replace the original expression with calculated value
             return res;
         }
@@ -164,9 +150,9 @@ const Circuit = struct {
                     }
                 },
                 2 => { // not
-                    var innerExp = try allocator.create(Expression);
-                    innerExp.* = try Expression.build(allocator, leftBuf[1]);
-                    exp = .{ .not = .{ innerExp } };
+                    var rightNotExp = try allocator.create(Expression);
+                    rightNotExp.* = try Expression.build(allocator, leftBuf[1]);
+                    exp = .{ .not = .{ rightNotExp } };
                 },
                 3 => { // command
                     var leftExp = try allocator.create(Expression);
@@ -217,10 +203,9 @@ test "Part 1" {
 
     try circuit.buildCircuit(circuit_input);
     circuit.print();
-    try circuit.resolve();
-    circuit.print();
     circuit.process();
     circuit.print();
+
     // var e1 = Expression{ .value = 5 };
     // try expectEqual(5, e1.eval());
     // var exp = Expression{ .not = .{ &e1 } };
