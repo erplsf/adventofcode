@@ -43,6 +43,11 @@ const Circuit = struct {
     }
 
     pub fn setValue(self: *Circuit, key: []const u8, val: u16) !void {
+        if (self.map.contains(key)) {
+            const ptr = self.map.get(key).?;
+            _ = ptr.*.deinit(self.allocator, self);
+            self.allocator.destroy(ptr);
+        }
         var expr: *Expression = try self.allocator.create(Expression);
         expr.* = .{ .value = val };
         try self.map.put(key, expr);
@@ -196,33 +201,14 @@ const Circuit = struct {
             return res;
         }
 
-        fn deinit(self: *Expression, allocator: std.mem.Allocator, circuit: *Circuit) bool {
+        fn deinit(self: *Expression, allocator: std.mem.Allocator, circuit: *Circuit) void {
             switch (self.*) {
                 .@"and", .@"or", .lshift, .rshift => |ie| {
-                    if (!circuit.isReferenced(ie[0])) {
-                        allocator.destroy(ie[0]);
-                        return true;
-                    }
-                    if (!circuit.isReferenced(ie[1])) {
-                        allocator.destroy(ie[1]);
-                        return true;
-                    }
+                    if (!circuit.isReferenced(ie[0])) allocator.destroy(ie[0]);
+                    if (!circuit.isReferenced(ie[1])) allocator.destroy(ie[1]);
                 },
-                // .not => |ie| {
-                //     if (!circuit.isReferenced(ie[0])) {
-                //         allocator.destroy(ie[0]);
-                //         return true;
-                //     }
-                // },
-                // .value, .name => {
-                //     if (!circuit.isReferenced(self)) {
-                //         allocator.destroy(self);
-                //         return true;
-                //     }
-                // },
-                else => {},
+                else => {}, // no need to handle other cases - they are replaced directly
             }
-            return false;
         }
 
         pub fn build(allocator: std.mem.Allocator, input: []const u8) std.mem.Allocator.Error!*Expression {
@@ -283,13 +269,9 @@ fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     defer circuit_2.deinit();
 
     try circuit_2.buildCircuit(input);
-    try circuit_2.resolve();
     try circuit_2.setValue("b", part_1);
-    std.debug.print("c2:\n", .{});
-    circuit_2.print();
+    try circuit_2.resolve();
     circuit_2.eval();
-    std.debug.print("c2:\n", .{});
-    circuit_2.print();
 
     const part_2 = circuit_2.getValue("a");
 
@@ -297,8 +279,6 @@ fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
 }
 
 test "Part 1" {
-    // std.debug.print("size: {d}\n", .{@sizeOf(Circuit.Expression)});
-
     const circuit_input =
         \\123 -> x
         \\456 -> y
@@ -314,15 +294,8 @@ test "Part 1" {
     defer circuit.deinit();
 
     try circuit.buildCircuit(circuit_input);
-    // std.debug.print("after build:\n", .{});
-    // circuit.print();
     try circuit.resolve();
-    // std.debug.print("after resolve:\n", .{});
-    // circuit.print();
     circuit.eval();
-    // std.debug.print("after eval:\n", .{});
-    // circuit.print();
-
 
     try expectEqual(72, circuit.getValue("d"));
     try expectEqual(507, circuit.getValue("e"));
@@ -335,4 +308,33 @@ test "Part 1" {
     try expectEqual(123, circuit.getValue("z"));
 }
 
-test "Part 2" {}
+test "Part 2" {
+    const circuit_input =
+        \\123 -> x
+        \\456 -> y
+        \\x AND y -> d
+        \\x OR y -> e
+        \\x LSHIFT 2 -> f
+        \\y RSHIFT 2 -> g
+        \\NOT x -> h
+        \\NOT y -> i
+        \\x -> z
+    ;
+    var circuit = Circuit.init(std.testing.allocator);
+    defer circuit.deinit();
+
+    try circuit.buildCircuit(circuit_input);
+    try circuit.setValue("d", 666);
+    try circuit.resolve();
+    circuit.eval();
+
+    try expectEqual(666, circuit.getValue("d"));
+    try expectEqual(507, circuit.getValue("e"));
+    try expectEqual(492, circuit.getValue("f"));
+    try expectEqual(114, circuit.getValue("g"));
+    try expectEqual(65412, circuit.getValue("h"));
+    try expectEqual(65079, circuit.getValue("i"));
+    try expectEqual(123, circuit.getValue("x"));
+    try expectEqual(456, circuit.getValue("y"));
+    try expectEqual(123, circuit.getValue("z"));
+}
