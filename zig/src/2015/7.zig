@@ -21,18 +21,19 @@ const Solution = aoc.Solution(u16, u16);
 
 const Circuit = struct {
     allocator: std.mem.Allocator,
-    map: std.StringArrayHashMap(*Expression),
+    map: std.StringHashMap(*Expression),
 
     pub fn init(allocator: std.mem.Allocator) Circuit {
         return .{
             .allocator = allocator,
-            .map = std.StringArrayHashMap(*Expression).init(allocator),
+            .map = std.StringHashMap(*Expression).init(allocator),
         };
     }
 
     fn isReferenced(self: *Circuit, ptr: *Expression) bool {
-        for (self.map.values()) |exp| {
-            if (exp == ptr) return true;
+        var it = self.map.valueIterator();
+        while (it.next()) |exp| {
+            if (exp.* == ptr) return true;
         }
         return false;
     }
@@ -49,20 +50,30 @@ const Circuit = struct {
 
 
     pub fn deinit(self: *Circuit) void {
-        for (self.map.values()) |exp| {
-            switch(exp.*) {
-               .@"and", .@"or", .lshift, .rshift => |ie| {
-                    // exp.print();
-                    self.allocator.destroy(&ie[0].*);
-                    self.allocator.destroy(&ie[1].*);
-                },
-                .not => |ie| {
-                    self.allocator.destroy(&ie[0].*);
-                },
-                .value => {}, // we destroy it below
-                else => unreachable,
+        while (self.map.count() > 0) {
+            var it = self.map.iterator();
+            while (it.next()) |entry| {
+                switch(entry.value_ptr.*.*) {
+                .@"and", .@"or", .lshift, .rshift => |ie| {
+                        // exp.print();
+                        self.allocator.destroy(&ie[0].*);
+                        self.allocator.destroy(&ie[1].*);
+                    },
+                    .not => |ie| {
+                        self.allocator.destroy(&ie[0].*);
+                    },
+                    .value => {}, // we destroy it below
+                    else => unreachable,
+                }
+                const addr = entry.key_ptr.*;
+                const ptr = entry.value_ptr.*;
+                _ = self.map.remove(addr);
+                if (!self.isReferenced(ptr)) {
+                    // std.debug.print("freeing: {*}\n", .{ptr});
+                    self.allocator.destroy(ptr);
+                }
+                break;
             }
-            self.allocator.destroy(exp);
         }
         self.map.deinit();
     }
@@ -75,8 +86,9 @@ const Circuit = struct {
     }
 
     pub fn resolve(self: *Circuit) !void {
-        for (self.map.values()) |exp| {
-            switch (exp.*) {
+        var it = self.map.valueIterator();
+        while (it.next()) |exp| {
+            switch (exp.*.*) {
                 .@"and", .@"or", .lshift, .rshift => |*ie| {
                     if (ie[0].* == Expression.name) {
                         const name = ie[0].name;
@@ -96,18 +108,24 @@ const Circuit = struct {
                         ie[0] = self.map.get(name).?;
                     }
                 },
-                .value => {},
-                else => {
-                    std.debug.print("!!??: {?}\n", .{exp.*});
-                    unreachable;
+                .name => {
+                    const name = exp.*.*.name;
+                    self.allocator.destroy(exp.*);
+                    exp.* = self.map.get(name).?;
                 },
+                .value => {},
+                // else => {
+                //     std.debug.print("!!??: {?}\n", .{exp.*});
+                //     unreachable;
+                // },
             }
         }
     }
 
     pub fn eval(self: *Circuit) void {
-        for (self.map.values()) |exp| {
-            _ = exp.eval(self.allocator, self);
+        var it = self.map.valueIterator();
+        while (it.next()) |exp| {
+            _ = exp.*.eval(self.allocator, self);
         }
     }
 
@@ -145,19 +163,25 @@ const Circuit = struct {
 
         pub fn print(self: *Expression) void {
             switch(self.*) {
-               .@"and", .@"or", .lshift, .rshift => |ie| {
-                   std.debug.print("a: {*} v: {?} | a: {*} v: {?}", .{ie[0], ie[0].*, ie[1], ie[1].*});
+                .@"and", .@"or", .lshift, .rshift => |ie| {
+                    std.debug.print("a: {*} v: {?} | a: {*} v: {?}", .{ie[0], ie[0].*, ie[1], ie[1].*});
                 },
                 .not => |ie| {
-                   std.debug.print("a: {*} v: {?}", .{ie[0], ie[0].*});
+                    std.debug.print("a: {*} v: {?}", .{ie[0], ie[0].*});
                 },
-                .value, .name => {
-                   std.debug.print("a: {*} v: {?}", .{self, self.*});
+                .value => {
+                    std.debug.print("a: {*} v: {?}", .{self, self.*});
+                },
+                .name => {
+                    std.debug.print("a: {*}, v: {s}", .{self, self.*.name});
                 },
             }
         }
 
         pub fn eval(self: *Expression, allocator: std.mem.Allocator, circuit: *Circuit) u16 {
+            // std.debug.print("evaling: ", .{});
+            // self.print();
+            // std.debug.print("\n", .{});
             const res = switch(self.*) {
                 .@"and" => |ex| ex[0].eval(allocator, circuit) & ex[1].eval(allocator, circuit),
                 .@"or" => |ex| ex[0].eval(allocator, circuit) | ex[1].eval(allocator, circuit),
@@ -255,19 +279,21 @@ fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
 
     const part_1 = circuit_1.getValue("a");
 
-    // var circuit_2 = Circuit.init(allocator);
-    // defer circuit_2.deinit();
+    var circuit_2 = Circuit.init(allocator);
+    defer circuit_2.deinit();
 
-    // try circuit_2.buildCircuit(input);
-    // try circuit_2.resolve();
-    // // try circuit_2.setValue("b", part_1);
-    // circuit_2.eval();
-    // // std.debug.print("c2:\n", .{});
-    // circuit_2.print();
+    try circuit_2.buildCircuit(input);
+    try circuit_2.resolve();
+    try circuit_2.setValue("b", part_1);
+    std.debug.print("c2:\n", .{});
+    circuit_2.print();
+    circuit_2.eval();
+    std.debug.print("c2:\n", .{});
+    circuit_2.print();
 
-    // const part_2 = circuit_2.getValue("a");
+    const part_2 = circuit_2.getValue("a");
 
-    return Solution{.part_1 = part_1, .part_2 = 0};
+    return Solution{.part_1 = part_1, .part_2 = part_2};
 }
 
 test "Part 1" {
@@ -282,6 +308,7 @@ test "Part 1" {
         \\y RSHIFT 2 -> g
         \\NOT x -> h
         \\NOT y -> i
+        \\x -> z
     ;
     var circuit = Circuit.init(std.testing.allocator);
     defer circuit.deinit();
@@ -305,6 +332,7 @@ test "Part 1" {
     try expectEqual(65079, circuit.getValue("i"));
     try expectEqual(123, circuit.getValue("x"));
     try expectEqual(456, circuit.getValue("y"));
+    try expectEqual(123, circuit.getValue("z"));
 }
 
 test "Part 2" {}
