@@ -106,4 +106,13 @@ pub fn build(b: *std.build.Builder) anyerror!void {
     for (tests.items) |exe_test| {
         test_step.dependOn(&exe_test.step);
     }
+
+    // undirected graph tests
+    const ug_test = b.addTest("src/ug.zig");
+    ug_test.addPackagePath("aoc", "src/aoc.zig");
+    ug_test.setTarget(target);
+    ug_test.setBuildMode(mode);
+
+    const ug_test_step = b.step("ug-test", "Run UG tests");
+    ug_test_step.dependOn(&ug_test.step);
 }
