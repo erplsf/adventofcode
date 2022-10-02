@@ -115,4 +115,13 @@ pub fn build(b: *std.build.Builder) anyerror!void {
 
     const ug_test_step = b.step("ug-test", "Run UG tests");
     ug_test_step.dependOn(&ug_test.step);
+
+    // permute tests
+    const pm_test = b.addTest("src/permute.zig");
+    pm_test.addPackagePath("aoc", "src/aoc.zig");
+    pm_test.setTarget(target);
+    pm_test.setBuildMode(mode);
+
+    const pm_test_step = b.step("pm-test", "Run Permute tests");
+    pm_test_step.dependOn(&pm_test.step);
 }
