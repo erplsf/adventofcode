@@ -77,6 +77,7 @@ test {
 
     var output = try permutations(usize, allocator, &items);
     try std.testing.expectEqualSlices(usize, &[_]usize{1, 2, 3}, &items); // original is unmodified
+    try std.testing.expect(&items != output.items[0].ptr); // original is different from the first array
     try expectEqual(6, output.items.len); // we have six permutations from three items
 
     try std.testing.expectEqualSlices(usize, &[_]usize{1, 2, 3}, output.items[0]);
