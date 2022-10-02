@@ -113,3 +113,12 @@ test {
     try std.testing.expectEqualSlices(usize, &[_]usize{2, 3, 1}, pms.items.items[4]);
     try std.testing.expectEqualSlices(usize, &[_]usize{3, 2, 1}, pms.items.items[5]);
 }
+
+// TODO: implement a better method (with generators / iterators) - this takes forever to run.
+test {
+    const allocator = std.testing.allocator;
+    var pms = Permutations(usize).init(allocator);
+    defer pms.deinit();
+
+    try pms.permute(&[_]usize{1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
+}
