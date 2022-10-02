@@ -6,6 +6,7 @@ const ArrayList = std.ArrayList;
 const aoc = @import("aoc");
 const expectEqual = aoc.expectEqual;
 
+// TODO: refactor the struct to hold a slice
 pub fn Permutations(comptime T: type) type {
     return struct {
         allocator: Allocator,
