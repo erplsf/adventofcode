@@ -79,6 +79,7 @@ pub fn build(b: *std.build.Builder) anyerror!void {
         const exe = b.addExecutable(solution.solution_name, solution.relative_path);
 
         exe.addPackagePath("aoc", "src/aoc.zig");
+        exe.addPackagePath("pm", "src/permute.zig");
         exe.setTarget(target);
         exe.setBuildMode(mode);
         exe.install();
@@ -94,6 +95,7 @@ pub fn build(b: *std.build.Builder) anyerror!void {
 
         const exe_tests = b.addTest(solution.relative_path);
         exe_tests.addPackagePath("aoc", "src/aoc.zig");
+        exe_tests.addPackagePath("pm", "src/permute.zig");
         exe_tests.setTarget(target);
         exe_tests.setBuildMode(mode);
 
@@ -118,7 +120,7 @@ pub fn build(b: *std.build.Builder) anyerror!void {
 
     // permute tests
     const pm_test = b.addTest("src/permute.zig");
-    pm_test.addPackagePath("aoc", "src/aoc.zig");
+    pm_test.addPackagePath("pm", "src/permute.zig");
     pm_test.setTarget(target);
     pm_test.setBuildMode(mode);
 
