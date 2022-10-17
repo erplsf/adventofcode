@@ -108,7 +108,7 @@ fn makeValidPassword(allocator: Allocator, input: []const u8, skip: bool) ![]u8 
     while(true) {
         // try stdout.print("pw: {s}\n", .{in});
         if(vr.error_index != in.len - 1) {
-            // try stdout.print("upreset!\n", .{});
+            // try stdout.print("set!\n", .{});
             upreset(in, vr.error_index);
         }
         else
