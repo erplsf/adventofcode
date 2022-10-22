@@ -91,8 +91,8 @@ fn solve(input: []const u8, allocator: Allocator) !Solution {
 }
 
 test "Part 1" {
-    const allocator = std.testing.allocator;
-    try count("1211", allocator);
+    // const allocator = std.testing.allocator;
+    // try count("1211", allocator);
 }
 
 test "Part 2" {}
