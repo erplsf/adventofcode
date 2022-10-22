@@ -8,6 +8,18 @@ const Solution = struct {
     relative_path: []const u8,
 };
 
+const Package = struct {
+    name: []const u8,
+    path: []const u8,
+    tests: bool = false,
+};
+
+const packages = &[_]Package{
+    .{ .name = "aoc", .path = "src/aoc.zig" },
+    .{ .name = "pm", .path = "src/permute.zig", .tests = true },
+    .{ .name = "ug", .path = "src/ug.zig", .tests = true },
+};
+
 pub fn build(b: *std.build.Builder) anyerror!void {
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
@@ -78,8 +90,10 @@ pub fn build(b: *std.build.Builder) anyerror!void {
         // std.debug.print("{d} {d} {s} {s}\n", solution);
         const exe = b.addExecutable(solution.solution_name, solution.relative_path);
 
-        exe.addPackagePath("aoc", "src/aoc.zig");
-        exe.addPackagePath("pm", "src/permute.zig");
+        for (packages) |package| {
+            exe.addPackagePath(package.name, package.path);
+        }
+
         exe.setTarget(target);
         exe.setBuildMode(mode);
         exe.install();
@@ -94,8 +108,9 @@ pub fn build(b: *std.build.Builder) anyerror!void {
         run_step.dependOn(&run_cmd.step);
 
         const exe_tests = b.addTest(solution.relative_path);
-        exe_tests.addPackagePath("aoc", "src/aoc.zig");
-        exe_tests.addPackagePath("pm", "src/permute.zig");
+        for (packages) |package| {
+            exe_tests.addPackagePath(package.name, package.path);
+        }
         exe_tests.setTarget(target);
         exe_tests.setBuildMode(mode);
 
@@ -104,26 +119,28 @@ pub fn build(b: *std.build.Builder) anyerror!void {
         try tests.append(exe_tests);
     }
 
-    const test_step = b.step("test", "Run unit tests");
+    const test_step = b.step("all-tests", "Run all unit tests");
     for (tests.items) |exe_test| {
         test_step.dependOn(&exe_test.step);
     }
 
-    // undirected graph tests
-    const ug_test = b.addTest("src/ug.zig");
-    ug_test.addPackagePath("aoc", "src/aoc.zig");
-    ug_test.setTarget(target);
-    ug_test.setBuildMode(mode);
-
-    const ug_test_step = b.step("ug-test", "Run UG tests");
-    ug_test_step.dependOn(&ug_test.step);
-
     // permute tests
-    const pm_test = b.addTest("src/permute.zig");
-    pm_test.addPackagePath("pm", "src/permute.zig");
-    pm_test.setTarget(target);
-    pm_test.setBuildMode(mode);
+    for (packages) |package| {
+        if (!package.tests) continue;
+        const package_test = b.addTest(package.path);
+        for(packages) |sub_package| {
+            // if (package.name == sub_package.name) continue;
+            package_test.addPackagePath(sub_package.name, sub_package.path);
+        }
+        package_test.setTarget(target);
+        package_test.setBuildMode(mode);
 
-    const pm_test_step = b.step("pm-test", "Run Permute tests");
-    pm_test_step.dependOn(&pm_test.step);
+        const pts_name = try std.fmt.allocPrint(allocator, "{s}-test", .{package.name});
+        const pts_desc = try std.fmt.allocPrint(allocator, "{s}-test", .{package.name});
+        defer allocator.free(pts_name);
+        defer allocator.free(pts_desc);
+
+        const package_test_step = b.step(pts_name, pts_desc);
+        package_test_step.dependOn(&package_test.step);
+    }
 }

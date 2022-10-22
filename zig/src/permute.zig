@@ -115,10 +115,10 @@ test {
 }
 
 // TODO: implement a better method (with generators / iterators) - this takes forever to run.
-test {
-    const allocator = std.testing.allocator;
-    var pms = Permutations(usize).init(allocator);
-    defer pms.deinit();
+// test {
+//     const allocator = std.testing.allocator;
+//     var pms = Permutations(usize).init(allocator);
+//     defer pms.deinit();
 
-    try pms.permute(&[_]usize{1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
-}
+//     try pms.permute(&[_]usize{1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
+// }
