@@ -1,5 +1,6 @@
-{ pkgs ? import (fetchTarball
-  "https://github.com/NixOS/nixpkgs/archive/0e304ff0d9db453a4b230e9386418fd974d5804a.tar.gz")
-  { } }:
-
-pkgs.mkShell { buildInputs = with pkgs; [ zig zls ]; }
+(import (let lock = builtins.fromJSON (builtins.readFile ./flake.lock);
+in fetchTarball {
+  url =
+    "https://github.com/edolstra/flake-compat/archive/${lock.nodes.flake-compat.locked.rev}.tar.gz";
+  sha256 = lock.nodes.flake-compat.locked.narHash;
+}) { src = ./.; }).shellNix
