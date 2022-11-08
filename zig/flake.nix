@@ -1,9 +1,17 @@
 {
-  description = "Fresh zig development environment";
+  description = "Fresh zig-overlay development environment";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    zig.url = "github:mitchellh/zig-overlay";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    zig-overlay = {
+      url = "github:mitchellh/zig-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    zls = {
+      url = "github:zigtools/zls";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.zig-overlay.follows = "zig-overlay";
+    };
 
     # needed for shell shim: see NixOS Flakes wiki page
     flake-compat = {
@@ -12,5 +20,20 @@
     };
   };
 
-  outputs = { self, nixpkgs, zig, ... }@inputs: { };
+  outputs = { self, nixpkgs, zig-overlay, zls, ... }@inputs:
+    let
+      system = "x86_64-linux";
+
+      pkgs = import nixpkgs {
+        inherit system;
+        overlays = [ zig-overlay.overlays.default ];
+      };
+    in {
+      devShells.${system}.default = pkgs.mkShell {
+        buildInputs = [
+          zig-overlay.packages.${system}.master
+          zls.packages.${system}.default
+        ];
+      };
+    };
 }
