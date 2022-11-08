@@ -48,7 +48,7 @@ pub fn build(b: *std.build.Builder) anyerror!void {
     var tests = std.ArrayList(*std.build.LibExeObjStep).init(allocator);
     defer tests.deinit();
 
-    var dir = try std.fs.cwd().openDir("src", .{.iterate = true});
+    var dir = try std.fs.cwd().openIterableDir("src", .{});
     defer dir.close();
 
     var iter = dir.iterate();
@@ -62,7 +62,7 @@ pub fn build(b: *std.build.Builder) anyerror!void {
             const year_dir_realpath = try std.fs.realpathAlloc(allocator, year_dir_path);
             defer allocator.free(year_dir_realpath);
 
-            var year_dir = try std.fs.openDirAbsolute(year_dir_realpath, .{.iterate = true});
+            var year_dir = try std.fs.openIterableDirAbsolute(year_dir_realpath, .{});
             defer year_dir.close();
 
             var year_iter = year_dir.iterate();

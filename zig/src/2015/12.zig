@@ -37,7 +37,7 @@ fn solve(allocator: Allocator, input: []const u8) !Solution {
     return Solution{.part_1 = sum_p1, .part_2 = sum_p2};
 }
 
-fn walk(json: std.json.Value, func: anytype, args: anytype) void {
+fn walk(json: std.json.Value, comptime func: anytype, args: anytype) void {
     @call(.{}, func, .{json} ++ args);
     switch(json) {
         .Object => |obj| {
@@ -54,7 +54,7 @@ fn walk(json: std.json.Value, func: anytype, args: anytype) void {
     }
 }
 
-fn walk_p2(json: std.json.Value, func: anytype, args: anytype) void {
+fn walk_p2(json: std.json.Value, comptime func: anytype, args: anytype) void {
     @call(.{}, func, .{json} ++ args);
     blk: {
             switch(json) {

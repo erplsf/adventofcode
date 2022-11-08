@@ -50,7 +50,7 @@ fn solve(input: []const u8) !Solution {
     const awh = parts[1] * parts[2];
     const ahl = parts[0] * parts[2];
 
-    var part_1 = (2 * alw) + (2 * awh) + (2 * ahl) + @minimum(alw, @minimum(awh, ahl));
+    var part_1 = (2 * alw) + (2 * awh) + (2 * ahl) + @min(alw, @min(awh, ahl));
     var part_2 = (2 * parts[0]) + (2 * parts[1]) + (parts[0] * parts[1] * parts[2]);
 
     return Solution{.part_1 = part_1, .part_2 = part_2};

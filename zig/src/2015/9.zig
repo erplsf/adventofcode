@@ -79,7 +79,7 @@ fn solve(input: []const u8, allocator: Allocator) !Solution {
 
     var kit = distances.keyIterator();
     while(kit.next()) |key| {
-        try cities_hash_map.put(key.from, .{});
+        try cities_hash_map.put(key.from, {});
     }
 
     var cities = std.ArrayList([]const u8).init(allocator);
