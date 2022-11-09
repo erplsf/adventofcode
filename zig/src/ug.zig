@@ -11,9 +11,7 @@ pub fn UGraph(comptime V: type) type {
 
         const Self = @This();
 
-        const Error = error{
-            KeyNotFound
-        };
+        const Error = error{KeyNotFound};
 
         pub fn init(allocator: Allocator) Self {
             return .{
@@ -27,11 +25,11 @@ pub fn UGraph(comptime V: type) type {
             self.map.deinit();
         }
 
-        fn convertIndex(self: *const Self, x: usize, y: usize) callconv(.Inline) usize {
+        inline fn convertIndex(self: *const Self, x: usize, y: usize) usize {
             return self.map.count() * x + y;
         }
 
-        fn convertIndexWithSize(size: usize, x: usize, y: usize) callconv(.Inline) usize {
+        inline fn convertIndexWithSize(size: usize, x: usize, y: usize) usize {
             return size * x + y;
         }
 
@@ -45,9 +43,9 @@ pub fn UGraph(comptime V: type) type {
 
             // TODO: check if this doesn't overwrite existing values on paper
             var i: usize = 0;
-            while (i < prevCount): (i += 1) {
+            while (i < prevCount) : (i += 1) {
                 var j: usize = 0;
-                while (j < prevCount): (j += 1) {
+                while (j < prevCount) : (j += 1) {
                     if (i == j) continue;
                     const pIndex = Self.convertIndexWithSize(prevCount, i, j);
                     const nIndex = self.convertIndex(i, j);

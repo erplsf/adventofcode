@@ -34,12 +34,12 @@ fn solve(allocator: Allocator, input: []const u8) !Solution {
     var sum_p2: i64 = 0;
     walk_p2(tree.root, process, .{&sum_p2});
 
-    return Solution{.part_1 = sum_p1, .part_2 = sum_p2};
+    return Solution{ .part_1 = sum_p1, .part_2 = sum_p2 };
 }
 
 fn walk(json: std.json.Value, comptime func: anytype, args: anytype) void {
     @call(.{}, func, .{json} ++ args);
-    switch(json) {
+    switch (json) {
         .Object => |obj| {
             for (obj.values()) |val| {
                 walk(val, func, args);
@@ -57,11 +57,11 @@ fn walk(json: std.json.Value, comptime func: anytype, args: anytype) void {
 fn walk_p2(json: std.json.Value, comptime func: anytype, args: anytype) void {
     @call(.{}, func, .{json} ++ args);
     blk: {
-            switch(json) {
+        switch (json) {
             .Object => |obj| {
                 for (obj.values()) |val| {
                     if (val == .String and
-                            std.mem.eql(u8, "red", val.String)) break :blk;
+                        std.mem.eql(u8, "red", val.String)) break :blk;
                 }
                 for (obj.values()) |val| {
                     walk_p2(val, func, args);
@@ -78,7 +78,7 @@ fn walk_p2(json: std.json.Value, comptime func: anytype, args: anytype) void {
 }
 
 fn process(json: std.json.Value, sum: *i64) void {
-    switch(json) {
+    switch (json) {
         .Integer => |int| {
             sum.* += int;
         },

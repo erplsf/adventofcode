@@ -23,14 +23,14 @@ fn outerSolve(input: []const u8) !Solution {
     var total_part_1: usize = 0;
     var total_part_2: usize = 0;
 
-    while(it.next()) |line| {
+    while (it.next()) |line| {
         if (line.len == 0) break;
         const solution = try solve(line);
         total_part_1 += solution.part_1;
         total_part_2 += solution.part_2;
     }
 
-    return Solution{.part_1 = total_part_1, .part_2 = total_part_2};
+    return Solution{ .part_1 = total_part_1, .part_2 = total_part_2 };
 }
 
 fn solve(input: []const u8) !Solution {
@@ -53,7 +53,7 @@ fn solve(input: []const u8) !Solution {
     var part_1 = (2 * alw) + (2 * awh) + (2 * ahl) + @min(alw, @min(awh, ahl));
     var part_2 = (2 * parts[0]) + (2 * parts[1]) + (parts[0] * parts[1] * parts[2]);
 
-    return Solution{.part_1 = part_1, .part_2 = part_2};
+    return Solution{ .part_1 = part_1, .part_2 = part_2 };
 }
 
 test "Part 1" {

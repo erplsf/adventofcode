@@ -67,8 +67,8 @@ fn solve(input: []const u8, allocator: Allocator) !Solution {
 
         // std.log.debug("{s} -> {s}: {d}", .{from, to, distance});
 
-        try distances.put(.{.from = from, .to = to}, distance);
-        try distances.put(.{.from = to, .to = from}, distance);
+        try distances.put(.{ .from = from, .to = to }, distance);
+        try distances.put(.{ .from = to, .to = from }, distance);
     }
 
     var pms = pm.Permutations([]const u8).init(allocator);
@@ -78,7 +78,7 @@ fn solve(input: []const u8, allocator: Allocator) !Solution {
     defer cities_hash_map.deinit();
 
     var kit = distances.keyIterator();
-    while(kit.next()) |key| {
+    while (kit.next()) |key| {
         try cities_hash_map.put(key.from, {});
     }
 
@@ -86,7 +86,7 @@ fn solve(input: []const u8, allocator: Allocator) !Solution {
     defer cities.deinit();
 
     var khmit = cities_hash_map.keyIterator();
-    while(khmit.next()) |key| {
+    while (khmit.next()) |key| {
         // std.log.debug("city: {s} ", .{key.*});
         try cities.append(key.*);
     }
@@ -99,19 +99,19 @@ fn solve(input: []const u8, allocator: Allocator) !Solution {
 
     var min_sum: usize = std.math.maxInt(usize);
     var max_sum: usize = 0;
-    for(pms.items.items) |perm| {
+    for (pms.items.items) |perm| {
         var i: usize = 0;
         var sum: usize = 0;
-        while(i < perm.len - 1): (i += 1) {
+        while (i < perm.len - 1) : (i += 1) {
             // std.log.debug("{s} -> {s} ", .{perm[i], perm[i+1]});
-            sum += distances.get(.{.from = perm[i], .to = perm[i+1]}).?;
+            sum += distances.get(.{ .from = perm[i], .to = perm[i + 1] }).?;
         }
         if (sum < min_sum) min_sum = sum;
         if (sum > max_sum) max_sum = sum;
         // std.log.debug("distance: {d}", .{sum});
     }
 
-    return Solution{.part_1 = min_sum, .part_2 = max_sum};
+    return Solution{ .part_1 = min_sum, .part_2 = max_sum };
 }
 
 test "Part 1" {

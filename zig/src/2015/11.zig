@@ -35,13 +35,13 @@ fn validate(input: []const u8) ValidationResult {
     var r1_valid: bool = false;
     {
         var i: usize = 0;
-        while(i < input.len - 3): (i += 1) {
+        while (i < input.len - 3) : (i += 1) {
             if (r1_valid) break;
             // std.log.info("i: {d}\n", .{i});
-            if (input[i+1] > input[i] and
-                    input[i+1] - input[i] == 1 and
-                    input[i+2] > input[i+1] and
-                    input[i+2] - input[i+1] == 1) r1_valid = true;
+            if (input[i + 1] > input[i] and
+                input[i + 1] - input[i] == 1 and
+                input[i + 2] > input[i + 1] and
+                input[i + 2] - input[i + 1] == 1) r1_valid = true;
         }
     }
 
@@ -59,9 +59,9 @@ fn validate(input: []const u8) ValidationResult {
         var pair_char: u8 = undefined;
         var i: usize = 0;
         // stdout.print("s: {s}\n", .{input}) catch {};
-        while(i < input.len - 1): (i += 1) {
+        while (i < input.len - 1) : (i += 1) {
             if (r3_valid) break;
-            if (input[i] == input[i+1]) {
+            if (input[i] == input[i + 1]) {
                 // stdout.print("i: {d}, input[i]: {c}, input[i+1]: {c}\n", .{i, input[i], input[i+1]}) catch {};
                 if (input[i] != pair_char) {
                     pair_count += 1;
@@ -73,13 +73,13 @@ fn validate(input: []const u8) ValidationResult {
         if (pair_count >= 2) r3_valid = true;
     }
 
-    return .{.error_index = error_index, .valid = r1_valid and r2_valid and r3_valid};
+    return .{ .error_index = error_index, .valid = r1_valid and r2_valid and r3_valid };
 }
 
 fn increment(input: []u8, index: ?usize) void {
     var carry = false;
-    var i = index orelse input.len-1;
-    while(i > 0): (i -= 1) {
+    var i = index orelse input.len - 1;
+    while (i > 0) : (i -= 1) {
         input[i] += 1;
         if (input[i] > 122) { // ascii 'z'
             carry = true;
@@ -94,7 +94,7 @@ fn upreset(input: []u8, index: usize) void {
     increment(input, index);
 
     var i = index + 1;
-    while(i < input.len): (i += 1) {
+    while (i < input.len) : (i += 1) {
         input[i] = 97; // ascii 'a'
     }
 }
@@ -105,14 +105,12 @@ fn makeValidPassword(allocator: Allocator, input: []const u8, skip: bool) ![]u8 
     std.mem.copy(u8, in, input);
     var vr = validate(in);
     if (vr.valid and !skip) return in;
-    while(true) {
+    while (true) {
         // try stdout.print("pw: {s}\n", .{in});
-        if(vr.error_index != in.len - 1) {
+        if (vr.error_index != in.len - 1) {
             // try stdout.print("set!\n", .{});
             upreset(in, vr.error_index);
-        }
-        else
-            increment(in, null);
+        } else increment(in, null);
         vr = validate(in);
         if (vr.valid) break;
     }
@@ -123,26 +121,26 @@ fn solve(allocator: Allocator, input: []const u8) !Solution {
     var newPw = try makeValidPassword(allocator, std.mem.trim(u8, input, "\n"), false);
     var anotherPw = try makeValidPassword(allocator, newPw, true);
 
-    return Solution{.part_1 = newPw, .part_2 = anotherPw};
+    return Solution{ .part_1 = newPw, .part_2 = anotherPw };
 }
 
 test "Part 1" {
     const allocator = std.testing.allocator;
-    try expectEqual(.{.valid = false, .error_index = 1}, validate("hijklmmn"));
-    try expectEqual(.{.valid = false, .error_index = 7}, validate("abbceffg"));
-    try expectEqual(.{.valid = false, .error_index = 7}, validate("abbcegjk"));
-    try expectEqual(.{.valid = true, .error_index = 7}, validate("abcdffaa"));
+    try expectEqual(.{ .valid = false, .error_index = 1 }, validate("hijklmmn"));
+    try expectEqual(.{ .valid = false, .error_index = 7 }, validate("abbceffg"));
+    try expectEqual(.{ .valid = false, .error_index = 7 }, validate("abbcegjk"));
+    try expectEqual(.{ .valid = true, .error_index = 7 }, validate("abcdffaa"));
 
     var pw = "abcdefgh";
     var newPw = try makeValidPassword(allocator, pw, false);
-    try expectEqual(.{.valid = true, .error_index = 7}, validate(newPw));
+    try expectEqual(.{ .valid = true, .error_index = 7 }, validate(newPw));
     try std.testing.expectEqualStrings("abcdffaa", newPw);
     allocator.free(newPw);
 
     pw = "ghijklmn";
     newPw = try makeValidPassword(allocator, pw, false);
     defer allocator.free(newPw);
-    try expectEqual(.{.valid = true, .error_index = 7}, validate(newPw));
+    try expectEqual(.{ .valid = true, .error_index = 7 }, validate(newPw));
     try std.testing.expectEqualStrings("ghjaabcc", newPw);
 }
 

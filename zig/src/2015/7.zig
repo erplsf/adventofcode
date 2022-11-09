@@ -53,13 +53,12 @@ const Circuit = struct {
         try self.map.put(key, expr);
     }
 
-
     pub fn deinit(self: *Circuit) void {
         while (self.map.count() > 0) {
             var it = self.map.iterator();
             while (it.next()) |entry| {
-                switch(entry.value_ptr.*.*) {
-                .@"and", .@"or", .lshift, .rshift => |ie| {
+                switch (entry.value_ptr.*.*) {
+                    .@"and", .@"or", .lshift, .rshift => |ie| {
                         // exp.print();
                         self.allocator.destroy(&ie[0].*);
                         self.allocator.destroy(&ie[1].*);
@@ -167,18 +166,18 @@ const Circuit = struct {
         not: [1]*Expression,
 
         pub fn print(self: *Expression) void {
-            switch(self.*) {
+            switch (self.*) {
                 .@"and", .@"or", .lshift, .rshift => |ie| {
-                    std.debug.print("a: {*} v: {?} | a: {*} v: {?}", .{ie[0], ie[0].*, ie[1], ie[1].*});
+                    std.debug.print("a: {*} v: {?} | a: {*} v: {?}", .{ ie[0], ie[0].*, ie[1], ie[1].* });
                 },
                 .not => |ie| {
-                    std.debug.print("a: {*} v: {?}", .{ie[0], ie[0].*});
+                    std.debug.print("a: {*} v: {?}", .{ ie[0], ie[0].* });
                 },
                 .value => {
-                    std.debug.print("a: {*} v: {?}", .{self, self.*});
+                    std.debug.print("a: {*} v: {?}", .{ self, self.* });
                 },
                 .name => {
-                    std.debug.print("a: {*}, v: {s}", .{self, self.*.name});
+                    std.debug.print("a: {*}, v: {s}", .{ self, self.*.name });
                 },
             }
         }
@@ -187,12 +186,12 @@ const Circuit = struct {
             // std.debug.print("evaling: ", .{});
             // self.print();
             // std.debug.print("\n", .{});
-            const res = switch(self.*) {
+            const res = switch (self.*) {
                 .@"and" => |ex| ex[0].eval(allocator, circuit) & ex[1].eval(allocator, circuit),
                 .@"or" => |ex| ex[0].eval(allocator, circuit) | ex[1].eval(allocator, circuit),
                 .lshift => |ex| ex[0].eval(allocator, circuit) << @intCast(u4, ex[1].eval(allocator, circuit)),
                 .rshift => |ex| ex[0].eval(allocator, circuit) >> @intCast(u4, ex[1].eval(allocator, circuit)),
-                .not => |ex| ~ ex[0].eval(allocator, circuit),
+                .not => |ex| ~ex[0].eval(allocator, circuit),
                 .value => |ex| ex, // we already covered it in a branch above
                 .name => unreachable, // we should never try to call eval on an expression with string
             };
@@ -227,7 +226,7 @@ const Circuit = struct {
                 },
                 2 => { // not
                     const rightNotExp = try Expression.build(allocator, leftBuf[1]);
-                    exp.* = .{ .not = .{ rightNotExp } };
+                    exp.* = .{ .not = .{rightNotExp} };
                 },
                 3 => { // command
                     const leftExp = try Expression.build(allocator, leftBuf[0]);
@@ -275,7 +274,7 @@ fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
 
     const part_2 = circuit_2.getValue("a");
 
-    return Solution{.part_1 = part_1, .part_2 = part_2};
+    return Solution{ .part_1 = part_1, .part_2 = part_2 };
 }
 
 test "Part 1" {

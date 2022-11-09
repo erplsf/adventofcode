@@ -33,7 +33,7 @@ fn solve(input: []const u8) !Solution {
         enc += c.enc;
     }
 
-    return Solution{.part_1 = code - char, .part_2 = enc - code};
+    return Solution{ .part_1 = code - char, .part_2 = enc - code };
 }
 
 const Count = struct {
@@ -49,11 +49,12 @@ fn count(input: []const u8) Count {
 
     while (i < input.len) {
         if (input[i] == '\\') {
-            if (input[i+1] == '"' or
-                input[i+1] == '\\') { // cc + 1, i + 2
+            if (input[i + 1] == '"' or
+                input[i + 1] == '\\')
+            { // cc + 1, i + 2
                 i += 2;
                 enc += 4;
-            } else if (input[i+1] == 'x') { // cc + 1, i + 4
+            } else if (input[i + 1] == 'x') { // cc + 1, i + 4
                 i += 4;
                 enc += 5;
             }
@@ -65,7 +66,7 @@ fn count(input: []const u8) Count {
     }
     cc -= 2; // to account for opening and closing quotes
     enc += 4; // to account for opening and closing quotes
-    return .{.code = input.len, .char = cc, .enc = enc};
+    return .{ .code = input.len, .char = cc, .enc = enc };
 }
 
 test "Part 1" {

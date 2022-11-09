@@ -40,12 +40,12 @@ pub fn readFile(allocator: std.mem.Allocator) ![]const u8 {
 pub fn splitBuf(allocator: std.mem.Allocator, comptime T: type, input: []const T, delim: []const T) ![][]const T {
     var it = std.mem.split(T, input, delim);
     var len: usize = 0;
-    while(it.next() != null) {
+    while (it.next() != null) {
         len += 1;
     }
     var buf = try std.ArrayList([]const u8).initCapacity(allocator, len);
     it = std.mem.split(T, input, delim);
-    while(it.next()) |item| {
+    while (it.next()) |item| {
         try buf.append(item);
     }
     return buf.items;

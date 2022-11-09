@@ -28,7 +28,7 @@ fn solve(input: []const u8) !Solution {
         });
         if (floor == -1 and basement_index == 0) basement_index = (index + 1);
     }
-    return Solution{.part_1 = floor, .part_2 = basement_index};
+    return Solution{ .part_1 = floor, .part_2 = basement_index };
 }
 
 test "Part 1" {

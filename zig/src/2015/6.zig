@@ -47,9 +47,9 @@ pub fn Field(comptime T: type) type {
         pub fn execute(self: *Self, instruction: Instruction) void {
             var yi: usize = instruction.range.fromY;
             // var iCount: usize = 0;
-            while (yi <= instruction.range.toY): (yi += 1) {
+            while (yi <= instruction.range.toY) : (yi += 1) {
                 var xi: usize = instruction.range.fromX;
-                while (xi <= instruction.range.toX): (xi += 1) {
+                while (xi <= instruction.range.toX) : (xi += 1) {
                     const index = yi * side + xi;
                     // std.debug.print("index: {d}\n", .{index});
                     switch (instruction.opcode) {
@@ -85,9 +85,9 @@ pub fn Field(comptime T: type) type {
             var total: usize = 0;
 
             var yi: usize = 0;
-            while(yi < side): (yi += 1) {
+            while (yi < side) : (yi += 1) {
                 var xi: usize = 0;
-                while(xi < side): (xi += 1) {
+                while (xi < side) : (xi += 1) {
                     const index = yi * side + xi;
                     total += if (T == bool) @boolToInt(self.field[index]) else self.field[index];
                     // std.debug.print("v: {b}, t: {d}\n", .{self.field[index], total});
@@ -106,23 +106,23 @@ fn decode(input: []const u8) !Instruction {
     var opcode: Opcode = undefined;
     var range: Range = undefined;
     var i: usize = 0;
-    while(it.next()) |part|: (i += 1) {
+    while (it.next()) |part| : (i += 1) {
         switch (i) {
             0 => { // opcode part
-                    if (std.mem.eql(u8, part, "toggle")) {
-                        opcode = .Toggle;
+                if (std.mem.eql(u8, part, "toggle")) {
+                    opcode = .Toggle;
+                } else {
+                    const next_part = it.next().?;
+                    if (std.mem.eql(u8, next_part, "on")) {
+                        opcode = .TurnOn;
+                    } else if (std.mem.eql(u8, next_part, "off")) {
+                        opcode = .TurnOff;
                     } else {
-                        const next_part = it.next().?;
-                        if (std.mem.eql(u8, next_part, "on")) {
-                            opcode = .TurnOn;
-                        } else if (std.mem.eql(u8, next_part, "off")) {
-                            opcode = .TurnOff;
-                        } else {
-                            return aoc.AocError.InputParseProblem;
-                        }
+                        return aoc.AocError.InputParseProblem;
                     }
-                },
-            1,3 => { // from range part
+                }
+            },
+            1, 3 => { // from range part
                 var range_it = std.mem.split(u8, part, ",");
                 const rangeX = try std.fmt.parseUnsigned(u16, range_it.next().?, 10);
                 const rangeY = try std.fmt.parseUnsigned(u16, range_it.next().?, 10);
@@ -153,7 +153,7 @@ fn solve(input: []const u8) !Solution {
         fieldUsize.execute(inst);
     }
 
-    return Solution{.part_1 = fieldBool.count(), .part_2 = fieldUsize.count()};
+    return Solution{ .part_1 = fieldBool.count(), .part_2 = fieldUsize.count() };
 }
 
 test "Part 1" {

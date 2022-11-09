@@ -30,8 +30,8 @@ fn solve(input: []const u8, comptime zeroes: usize) !usize {
     var hex: [Md5.digest_length * 2]u8 = undefined; // double so we can fit our hex string (hex digest is 16, printable string is 32)
     var number: usize = 1;
 
-    while(true) {
-        const written = try std.fmt.bufPrint(&string, "{s}{d}", .{input, number});
+    while (true) {
+        const written = try std.fmt.bufPrint(&string, "{s}{d}", .{ input, number });
         Md5.hash(written, &hash, .{});
         _ = try std.fmt.bufPrint(&hex, "{s}", .{std.fmt.fmtSliceHexLower(&hash)});
         if (std.mem.startsWith(u8, &hex, "0" ** zeroes)) return number;

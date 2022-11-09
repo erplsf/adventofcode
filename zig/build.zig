@@ -71,9 +71,9 @@ pub fn build(b: *std.build.Builder) anyerror!void {
                     const year = try std.fmt.parseUnsigned(u16, entry.name, 10);
                     const day_part = std.mem.trimRight(u8, day_entry.name, ".zig");
                     const day = try std.fmt.parseUnsigned(u8, day_part, 10);
-                    const solution_name = try std.fmt.allocPrint(allocator, "{s}-{s}", .{entry.name, day_part});
-                    const solution_test_name = try std.fmt.allocPrint(allocator, "{s}-{s}-test", .{entry.name, day_part});
-                    const path = try std.fmt.allocPrint(allocator, "src/{s}/{s}", .{entry.name, day_entry.name});
+                    const solution_name = try std.fmt.allocPrint(allocator, "{s}-{s}", .{ entry.name, day_part });
+                    const solution_test_name = try std.fmt.allocPrint(allocator, "{s}-{s}-test", .{ entry.name, day_part });
+                    const path = try std.fmt.allocPrint(allocator, "src/{s}/{s}", .{ entry.name, day_entry.name });
                     try solutions.append(.{
                         .year = year,
                         .day = day,
@@ -128,7 +128,7 @@ pub fn build(b: *std.build.Builder) anyerror!void {
     for (packages) |package| {
         if (!package.tests) continue;
         const package_test = b.addTest(package.path);
-        for(packages) |sub_package| {
+        for (packages) |sub_package| {
             // if (package.name == sub_package.name) continue;
             package_test.addPackagePath(sub_package.name, sub_package.path);
         }

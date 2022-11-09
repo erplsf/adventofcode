@@ -32,7 +32,7 @@ pub fn Walker() type {
 
         pub fn init(allocator: std.mem.Allocator) Self {
             return .{
-                .position = .{.x = 0, .y = 0},
+                .position = .{ .x = 0, .y = 0 },
                 .allocator = allocator,
                 .field = std.AutoHashMap(Coords, void).init(allocator),
             };
@@ -60,7 +60,7 @@ fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     defer santa.deinit();
     try santa.recordPosition();
     for (input) |char| {
-        switch(char) {
+        switch (char) {
             '>' => santa.position.x += 1,
             '<' => santa.position.x -= 1,
             '^' => santa.position.y += 1,
@@ -88,7 +88,7 @@ fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     }
 
     for (input) |char| {
-        switch(char) {
+        switch (char) {
             '>' => walkers[santaIndex].position.x += 1,
             '<' => walkers[santaIndex].position.x -= 1,
             '^' => walkers[santaIndex].position.y += 1,
@@ -103,7 +103,7 @@ fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     part_2 += (walkers[0].visitedCount() + walkers[1].visitedCount());
     part_2 -= 1;
 
-    return Solution{.part_1 = part_1, .part_2 = part_2};
+    return Solution{ .part_1 = part_1, .part_2 = part_2 };
 }
 
 test "Part 1" {

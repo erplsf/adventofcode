@@ -19,22 +19,22 @@ pub fn main() !void {
 
 const Solution = aoc.Solution(usize, usize);
 
-const vowels = [_][]const u8{"a", "e", "i", "o", "u"};
-const forbidden = [_][]const u8{"ab", "cd", "pq", "xy"};
+const vowels = [_][]const u8{ "a", "e", "i", "o", "u" };
+const forbidden = [_][]const u8{ "ab", "cd", "pq", "xy" };
 
 fn niceV1(input: []const u8) bool {
     // count vowels
     var vCount: usize = 0;
-    for(vowels) |vowel| {
+    for (vowels) |vowel| {
         vCount += std.mem.count(u8, input, vowel);
     }
 
     var i: usize = 0;
     var double = false;
     var has_forbidden = false;
-    while (i < input.len - 1): (i += 1) {
-        if (input[i] == input[i+1]) double = true;
-        const input_pair = input[i..i+2];
+    while (i < input.len - 1) : (i += 1) {
+        if (input[i] == input[i + 1]) double = true;
+        const input_pair = input[i .. i + 2];
         for (forbidden) |pair| {
             // std.debug.print("input: {s}, pair: {s}\n", .{input[i..i+2], pair});
             if (std.mem.eql(u8, input_pair, pair)) has_forbidden = true;
@@ -52,15 +52,15 @@ fn niceV2(input: []const u8) bool {
     var p2 = false;
 
     // part 1
-    while(i < input.len-1): (i += 1) {
-        const pair = input[i..i+2];
-        if (std.mem.indexOfPos(u8, input, i+2, pair) orelse 0 > 0) p1 = true;
+    while (i < input.len - 1) : (i += 1) {
+        const pair = input[i .. i + 2];
+        if (std.mem.indexOfPos(u8, input, i + 2, pair) orelse 0 > 0) p1 = true;
     }
 
     // part 2
     i = 0;
-    while(i < input.len-2): (i += 1) {
-        if (i+2 < input.len and input[i] == input[i+2]) p2 = true;
+    while (i < input.len - 2) : (i += 1) {
+        if (i + 2 < input.len and input[i] == input[i + 2]) p2 = true;
     }
 
     return p1 and p2;
@@ -77,7 +77,7 @@ fn solve(input: []const u8) !Solution {
         if (niceV2(line)) part_2 += 1;
     }
 
-    return Solution{.part_1 = part_1, .part_2 = part_2};
+    return Solution{ .part_1 = part_1, .part_2 = part_2 };
 }
 
 test "Part 1" {

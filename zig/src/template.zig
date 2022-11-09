@@ -23,7 +23,7 @@ const Solution = aoc.Solution(usize, usize);
 
 fn solve(input: []const u8) Solution {
     _ = input;
-    return Solution{.part_1 = 0, .part_2 = 0};
+    return Solution{ .part_1 = 0, .part_2 = 0 };
 }
 
 test "Part 1" {

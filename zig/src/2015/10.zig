@@ -35,8 +35,8 @@ fn count(input: []const u8, allocator: Allocator) ![]const u8 {
 
     {
         var i: usize = 1;
-        while(i < input.len): (i += 1) {
-            var digit: usize = try std.fmt.parseUnsigned(usize, input[i..i+1], 10);
+        while (i < input.len) : (i += 1) {
+            var digit: usize = try std.fmt.parseUnsigned(usize, input[i .. i + 1], 10);
 
             if (digit != current_digit) {
                 current_digit = digit;
@@ -55,7 +55,7 @@ fn count(input: []const u8, allocator: Allocator) ![]const u8 {
     defer result.deinit();
 
     var i: usize = 0;
-    while(i < numbers.items.len): (i += 1) {
+    while (i < numbers.items.len) : (i += 1) {
         // std.log.info("digit: {d} -> count: {d}", .{numbers.items[i], counts.items[i]});
         var c = try std.fmt.allocPrint(allocator, "{d}", .{counts.items[i]});
         defer allocator.free(c);
@@ -73,21 +73,21 @@ fn solve(input: []const u8, allocator: Allocator) !Solution {
     var i: usize = 0;
     var p1_len: usize = 0;
     var p2_len: usize = 0;
-    while(i < 40): (i += 1) {
+    while (i < 40) : (i += 1) {
         // std.log.info("iter: {d}, res: {s}", .{i, result});
         result = try count(result, allocator);
         // defer allocator.free(result);
         p1_len = result.len;
     }
 
-    while(i < 50): (i += 1) {
+    while (i < 50) : (i += 1) {
         // std.log.info("iter: {d}, res: {s}", .{i, result});
         result = try count(result, allocator);
         // defer allocator.free(result);
         p2_len = result.len;
     }
 
-    return Solution{.part_1 = p1_len, .part_2 = p2_len};
+    return Solution{ .part_1 = p1_len, .part_2 = p2_len };
 }
 
 test "Part 1" {
