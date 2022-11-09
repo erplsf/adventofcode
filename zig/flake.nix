@@ -1,5 +1,5 @@
 {
-  description = "Fresh zig-overlay development environment";
+  description = "Zig development environment";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
