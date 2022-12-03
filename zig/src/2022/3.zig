@@ -82,7 +82,7 @@ fn solve(input: []const u8, allocator: std.mem.Allocator) !Solution {
     return Solution{ .part_1 = prioritySum, .part_2 = groupPrioritySum };
 }
 
-fn calculatePriority(item: u8) usize {
+fn calculatePriority(item: u8) u8 {
     return switch (item) {
         'a'...'z' => |char| char - 96,
         'A'...'Z' => |char| char - 38,
