@@ -4,7 +4,7 @@ const expectEqual = aoc.expectEqual;
 const Allocator = std.mem.Allocator;
 
 pub const log_level: std.log.Level = .info; // always print info level messages and above (std.log.info is fast enough for our purposes)
-const stdout = std.io.getStdOut.writer();
+const stdout = std.io.getStdOut().writer();
 const stderr = std.io.getStdErr().writer();
 
 pub fn main() !void {
