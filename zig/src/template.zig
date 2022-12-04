@@ -4,7 +4,8 @@ const expectEqual = aoc.expectEqual;
 const Allocator = std.mem.Allocator;
 
 pub const log_level: std.log.Level = .info; // always print info level messages and above (std.log.info is fast enough for our purposes)
-// const stdout = std.io.getStdOut.writer();
+const stdout = std.io.getStdOut.writer();
+const stderr = std.io.getStdErr().writer();
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -21,15 +22,22 @@ pub fn main() !void {
 
 const Solution = aoc.Solution(usize, usize);
 
-fn solve(input: []const u8) Solution {
+fn solve(allocator: Allocator, input: []const u8) !Solution {
+    _ = allocator;
     _ = input;
     return Solution{ .part_1 = 0, .part_2 = 0 };
 }
 
+const testing_input =
+    \\
+;
+
 test "Part 1" {
-    try expectEqual(0, solve("").part_1);
+    const allocator = std.testing.allocator;
+    try expectEqual(0, (try solve(allocator, testing_input)).part_1);
 }
 
 test "Part 2" {
-    try expectEqual(0, solve("").part_2);
+    const allocator = std.testing.allocator;
+    try expectEqual(0, (try solve(allocator, testing_input)).part_1);
 }
