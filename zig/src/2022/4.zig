@@ -3,21 +3,17 @@ const aoc = @import("aoc");
 const expectEqual = aoc.expectEqual;
 const Allocator = std.mem.Allocator;
 
-pub const log_level: std.log.Level = .info; // always print info level messages and above (std.log.info is fast enough for our purposes)
-const stdout = std.io.getStdOut().writer();
-const stderr = std.io.getStdErr().writer();
-
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
+    defer if (gpa.deinit()) @panic("memory leak!");
     const allocator = gpa.allocator();
 
     const input = try aoc.readFile(allocator);
     defer allocator.free(input);
 
     const answer = try solve(input, allocator);
-    std.log.info("Part 1: {d}", .{answer.part_1});
-    std.log.info("Part 2: {d}", .{answer.part_2});
+    aoc.print("Part 1: {d}\n", .{answer.part_1});
+    aoc.print("Part 2: {d}\n", .{answer.part_2});
 }
 
 const Solution = aoc.Solution(usize, usize);

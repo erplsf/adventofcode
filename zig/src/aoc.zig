@@ -1,5 +1,8 @@
 const std = @import("std");
 
+const stdout = std.io.getStdOut().writer();
+const stderr = std.io.getStdErr().writer();
+
 pub fn Solution(comptime p1_type: type, comptime p2_type: type) type {
     return struct {
         part_1: p1_type,
@@ -49,4 +52,12 @@ pub fn splitBuf(allocator: std.mem.Allocator, comptime T: type, input: []const T
         try buf.append(item);
     }
     return buf.items;
+}
+
+pub fn print(comptime format: []const u8, args: anytype) void {
+    stdout.print(format, args) catch unreachable;
+}
+
+pub fn prtintErr(comptime format: []const u8, args: anytype) void {
+    stderr.print(format, args) catch unreachable;
 }
