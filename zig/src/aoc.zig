@@ -58,6 +58,6 @@ pub fn print(comptime format: []const u8, args: anytype) void {
     stdout.print(format, args) catch unreachable;
 }
 
-pub fn prtintErr(comptime format: []const u8, args: anytype) void {
+pub fn printErr(comptime format: []const u8, args: anytype) void {
     stderr.print(format, args) catch unreachable;
 }
