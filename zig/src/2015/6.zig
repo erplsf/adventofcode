@@ -54,23 +54,23 @@ pub fn Field(comptime T: type) type {
                     // std.debug.print("index: {d}\n", .{index});
                     switch (instruction.opcode) {
                         .TurnOn => {
-                            if (T == bool) {
+                            if (comptime T == bool) {
                                 self.field[index] = true;
-                            } else if (T == usize) {
+                            } else if (comptime T == usize) {
                                 self.field[index] += 1;
                             }
                         },
                         .Toggle => {
-                            if (T == bool) {
+                            if (comptime T == bool) {
                                 self.field[index] = !self.field[index];
-                            } else if (T == usize) {
+                            } else if (comptime T == usize) {
                                 self.field[index] += 2;
                             }
                         },
                         .TurnOff => {
-                            if (T == bool) {
+                            if (comptime T == bool) {
                                 self.field[index] = false;
-                            } else if (T == usize) {
+                            } else if (comptime T == usize) {
                                 self.field[index] -|= 1; // saturating minus (min of zero)
                             }
                         },
@@ -144,7 +144,7 @@ fn decode(input: []const u8) !Instruction {
 fn solve(input: []const u8) !Solution {
     var it = std.mem.split(u8, input, "\n");
     var fieldBool = Field(bool){};
-    var fieldUsize = Field(usize){};
+    var fieldUsize = Field(u8){};
 
     while (it.next()) |line| {
         if (line.len == 0) break;

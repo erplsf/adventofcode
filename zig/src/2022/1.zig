@@ -39,7 +39,7 @@ fn solve(input: []const u8, allocator: std.mem.Allocator) !Solution {
         try allElfCalories.append(elfCalories);
     }
 
-    var ownedCalories = allElfCalories.toOwnedSlice();
+    var ownedCalories = try allElfCalories.toOwnedSlice();
     std.sort.sort(usize, ownedCalories, {}, std.sort.desc(usize));
     defer allocator.free(ownedCalories);
     const topThreeCalories = ownedCalories[0] + ownedCalories[1] + ownedCalories[2];
