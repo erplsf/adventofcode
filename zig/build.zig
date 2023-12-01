@@ -88,6 +88,8 @@ pub fn build(b: *std.Build) !void {
         }
     }
 
+    const utils = b.createModule(.{ .source_file = .{ .path = "src/utils.zig" } });
+
     for (solutions.items) |solution| {
         // std.debug.print("{d} {d} {s} {s}\n", solution);
         const exe = b.addExecutable(.{
@@ -96,6 +98,8 @@ pub fn build(b: *std.Build) !void {
             .target = target,
             .optimize = optimize,
         });
+
+        exe.addModule("utils", utils);
 
         // for (packages) |package| {
         //     exe.addPackagePath(package.name, package.path);

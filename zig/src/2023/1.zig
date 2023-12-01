@@ -1,4 +1,5 @@
 const std = @import("std");
+const utils = @import("utils");
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -8,18 +9,7 @@ pub fn main() !void {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
 
-    var buffer: []u8 = undefined;
-    if (args.len > 1) {
-        const path = try std.fs.realpathAlloc(allocator, args[1]);
-        defer allocator.free(path);
-
-        const file = try std.fs.openFileAbsolute(path, .{});
-        defer file.close();
-
-        const size = (try file.stat()).size;
-        buffer = try allocator.alloc(u8, size);
-        try file.reader().readNoEof(buffer);
-    }
+    const buffer = try utils.readFile(allocator);
 
     var digits = std.ArrayList(usize).init(allocator);
     defer digits.deinit();
