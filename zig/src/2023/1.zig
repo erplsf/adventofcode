@@ -1,6 +1,18 @@
 const std = @import("std");
 const utils = @import("utils");
 
+const words: []const []const u8 = &.{
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+};
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
@@ -15,18 +27,6 @@ pub fn main() !void {
     defer digits.deinit();
 
     var sum: usize = 0;
-
-    const words: []const []const u8 = &.{
-        "one",
-        "two",
-        "three",
-        "four",
-        "five",
-        "six",
-        "seven",
-        "eight",
-        "nine",
-    };
 
     var it = std.mem.splitScalar(u8, buffer, '\n');
     while (it.next()) |line| {
