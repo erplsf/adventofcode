@@ -9,6 +9,7 @@ const Solution = struct {
 const GameResult = struct {
     id: usize,
     possible: bool,
+    power: usize,
 };
 
 const Colors = enum {
@@ -33,6 +34,7 @@ pub fn parseLine(line: []const u8) !GameResult {
     var roundIt = std.mem.splitScalar(u8, gRoundPart, ';');
 
     var maxGameColorCounts: [@typeInfo(Colors).Enum.fields.len]usize = [_]usize{ 0, 0, 0 }; // HACK: ugly
+    var minGameColorCounts: [@typeInfo(Colors).Enum.fields.len]usize = [_]usize{ std.math.maxInt(usize), std.math.maxInt(usize), std.math.maxInt(usize) }; // HACK: ugly
     while (roundIt.next()) |roundText| {
         if (roundText.len == 0) continue;
         var colorsIt = std.mem.splitScalar(u8, roundText, ',');
@@ -48,6 +50,7 @@ pub fn parseLine(line: []const u8) !GameResult {
 
             const colorId = @intFromEnum(color);
             maxGameColorCounts[colorId] = @max(maxGameColorCounts[colorId], colorCount);
+            minGameColorCounts[colorId] = @min(minGameColorCounts[colorId], colorCount);
         }
     }
 
@@ -59,30 +62,41 @@ pub fn parseLine(line: []const u8) !GameResult {
         }
     }
 
-    return .{ .id = gId, .possible = possible };
+    var power: usize = 1;
+    // std.debug.print("{any}\n", .{maxGameColorCounts});
+    for (maxGameColorCounts) |count| {
+        power *= count;
+    }
+
+    return .{ .id = gId, .possible = possible, .power = power };
 }
 
-pub fn solve(input: []const u8) !usize {
+pub fn solve(input: []const u8) !Solution {
     var linesIt = std.mem.splitScalar(u8, input, '\n');
     var pSum: usize = 0;
+    var powers: usize = 0;
     while (linesIt.next()) |line| {
         if (line.len == 0) continue;
         const gResult = try parseLine(line);
+        // std.debug.print("{?}\n", .{gResult});
         if (gResult.possible) pSum += gResult.id;
+        powers += gResult.power;
     }
-    return pSum;
+    return .{ .p1 = pSum, .p2 = powers };
 }
 
-test "Part 1" {
-    const input =
-        \\Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
-        \\Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
-        \\Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
-        \\Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
-        \\Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
-    ;
+const test_input =
+    \\Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+    \\Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+    \\Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+    \\Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+    \\Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
+;
 
-    try std.testing.expectEqual(@as(usize, 8), try solve(input));
+test "examples" {
+    const results = try solve(test_input);
+    try std.testing.expectEqual(@as(usize, 8), results.p1);
+    try std.testing.expectEqual(@as(usize, 2286), results.p2);
 }
 
 pub fn main() !void {
@@ -96,6 +110,7 @@ pub fn main() !void {
     const buffer = try utils.readFile(allocator);
     defer allocator.free(buffer);
 
-    const p1 = try solve(buffer);
-    std.debug.print("Part 1: {d}\n", .{p1});
+    const s = try solve(buffer);
+    std.debug.print("Part 1: {d}\n", .{s.p1});
+    std.debug.print("Part 2: {d}\n", .{s.p2});
 }
