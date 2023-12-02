@@ -21,6 +21,7 @@
         buildInputs = with pkgs; [
           zls.packages.${system}.default
           zig-overlay.packages.${system}.master
+          hyperfine
         ];
       };
     };
