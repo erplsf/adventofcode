@@ -45,7 +45,7 @@ pub fn build(b: *std.Build) !void {
         solutions.deinit();
     }
 
-    var tests = std.ArrayList(*std.build.LibExeObjStep).init(allocator);
+    var tests = std.ArrayList(*std.build.Step).init(allocator);
     defer tests.deinit();
 
     var dir = try std.fs.cwd().openIterableDir("src", .{});
@@ -121,18 +121,19 @@ pub fn build(b: *std.Build) !void {
             .target = target,
             .optimize = optimize,
         });
-        // for (packages) |package| {
-        //     exe_tests.addPackagePath(package.name, package.path);
-        // }
+
+        exe_tests.addModule("utils", utils);
+
+        const run_exe_tests = b.addRunArtifact(exe_tests);
 
         const one_test_step = b.step(solution.solution_test_name, "Run unit tests");
-        one_test_step.dependOn(&exe_tests.step);
-        try tests.append(exe_tests);
+        one_test_step.dependOn(&run_exe_tests.step);
+        try tests.append(&run_exe_tests.step);
     }
 
     const test_step = b.step("all-tests", "Run all unit tests");
     for (tests.items) |exe_test| {
-        test_step.dependOn(&exe_test.step);
+        test_step.dependOn(exe_test);
     }
 
     // permute tests
