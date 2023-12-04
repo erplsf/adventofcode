@@ -23,3 +23,10 @@ pub fn readFile(allocator: std.mem.Allocator) ![]const u8 {
     }
     return AocError.NoArgumentProvided;
 }
+
+pub fn anyOf(comptime T: type, one: T, candidates: []const T) bool {
+    for (candidates) |candidate| {
+        if (one == candidate) return true;
+    }
+    return false;
+}
