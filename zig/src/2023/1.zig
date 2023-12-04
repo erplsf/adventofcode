@@ -13,6 +13,32 @@ const words: []const []const u8 = &.{
     "nine",
 };
 
+const Solution = struct {
+    p1: usize,
+    p2: usize,
+};
+
+pub fn solve(input: []const u8) Solution {
+    _ = input;
+
+    return .{ .p1 = 0, .p2 = 0 };
+}
+
+// pub fn parseLine(line: []const u8, words: bool) usize {
+//     return 0;
+// }
+
+test "Part 1" {
+    const input =
+        \\1abc2
+        \\pqr3stu8vwx
+        \\a1b2c3d4e5f
+        \\treb7uchet
+    ;
+
+    try std.testing.expectEqual(@as(usize, 142), solve(input).p1);
+}
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
