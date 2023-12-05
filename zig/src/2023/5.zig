@@ -7,15 +7,17 @@ const Solution = struct {
 };
 
 const Seed = struct { number: usize, soil: usize = undefined, fertilizer: usize = undefined, water: usize = undefined, temperature: usize = undefined, humidity: usize = undefined, localtion: usize = undefined };
+const Range = struct { beg: usize, end: usize };
+const RangeDest = struct { range: Range, dest: usize };
 
 const SeedsList = std.ArrayList(Seed);
-const Mapping = std.AutoHashMap(usize, usize);
+const MappingList = std.ArrayList(RangeDest);
 const mapCount = 7;
 
 pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     var seeds = SeedsList.init(allocator);
     defer seeds.deinit();
-    var maps: []Mapping = try allocator.alloc(Mapping, mapCount);
+    var maps: []MappingList = try allocator.alloc(MappingList, mapCount);
     defer allocator.free(maps);
     defer for (0..maps.len) |idx| maps[idx].deinit();
 
@@ -33,12 +35,13 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     }
 
     for (0..maps.len) |idx| {
-        maps[idx] = Mapping.init(allocator);
+        maps[idx] = MappingList.init(allocator);
 
         const mapBlock = blocksIt.next() orelse return utils.AocError.InputParseProblem;
         var mapInnerIt = std.mem.splitScalar(u8, mapBlock, '\n');
         _ = mapInnerIt.next() orelse return utils.AocError.InputParseProblem; // skip text
         while (mapInnerIt.next()) |mapLineText| {
+            if (mapLineText.len == 0) continue;
             // std.debug.print("line: {s}\n", .{mapLineText});
             var numbersIt = std.mem.splitScalar(u8, mapLineText, ' ');
             const endText = numbersIt.next() orelse return utils.AocError.InputParseProblem;
@@ -48,10 +51,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
             const startNum = try std.fmt.parseUnsigned(usize, startText, 10);
             const rangeNum = try std.fmt.parseUnsigned(usize, rangeText, 10);
 
-            for (0..rangeNum) |rangeIdx| {
-                // std.debug.print("{d} -> {d}\n", .{ startNum + rangeIdx, endNum + rangeIdx });
-                try maps[idx].put(startNum + rangeIdx, endNum + rangeIdx);
-            }
+            try maps[idx].append(.{ .range = .{ .beg = startNum, .end = startNum + rangeNum }, .dest = endNum });
         }
     }
 
@@ -59,9 +59,16 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     for (seeds.items) |seed| {
         var currentValue: usize = seed.number;
         for (0..maps.len) |idx| {
-            const newValue = maps[idx].get(currentValue) orelse currentValue;
+            currentValue = for (maps[idx].items) |rangeDest| {
+                if (currentValue >= rangeDest.range.beg and
+                    currentValue <= rangeDest.range.end)
+                {
+                    // std.debug.print("cur: {d}, beg: {d}\n", .{ currentValue, rangeDest.range.beg });
+                    const diff = currentValue - rangeDest.range.beg;
+                    break rangeDest.dest + diff;
+                }
+            } else currentValue;
             // std.debug.print("cur: {d}, new: {d}\n", .{ currentValue, newValue });
-            currentValue = newValue;
         }
         // std.debug.print("seed: {d}, location: {d}\n", .{ seed.number, currentValue });
         minLocation = @min(minLocation, currentValue);
