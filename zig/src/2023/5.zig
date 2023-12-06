@@ -1,3 +1,4 @@
+// TODO: solve without brute-forcing, but with proper ranges
 const std = @import("std");
 const utils = @import("utils");
 
@@ -6,11 +7,10 @@ const Solution = struct {
     p2: usize,
 };
 
-const Seed = struct { number: usize, soil: usize = undefined, fertilizer: usize = undefined, water: usize = undefined, temperature: usize = undefined, humidity: usize = undefined, localtion: usize = undefined };
 const Range = struct { beg: usize, end: usize };
 const RangeDest = struct { range: Range, dest: usize };
 
-const SeedsList = std.ArrayList(Seed);
+const SeedsList = std.ArrayList(usize);
 const MappingList = std.ArrayList(RangeDest);
 const mapCount = 7;
 
@@ -31,7 +31,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     var seedsListIt = std.mem.splitScalar(u8, seedsList, ' ');
     while (seedsListIt.next()) |numberText| {
         const number = try std.fmt.parseUnsigned(usize, numberText, 10);
-        try seeds.append(.{ .number = number });
+        try seeds.append(number);
     }
 
     for (0..maps.len) |idx| {
@@ -56,8 +56,8 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     }
 
     var minLocation: usize = std.math.maxInt(usize);
-    for (seeds.items) |seed| {
-        var currentValue: usize = seed.number;
+    for (seeds.items) |number| {
+        var currentValue: usize = number;
         for (0..maps.len) |idx| {
             currentValue = for (maps[idx].items) |rangeDest| {
                 if (currentValue >= rangeDest.range.beg and
@@ -74,39 +74,32 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
         minLocation = @min(minLocation, currentValue);
     }
 
-    return .{ .p1 = minLocation, .p2 = 0 };
+    var wIt = std.mem.window(usize, seeds.items, 2, 2);
+    var sMinLocation: usize = std.math.maxInt(usize);
+    while (wIt.next()) |pair| {
+        const beg = pair[0];
+        const range = pair[1];
+        for (beg..beg + range) |number| {
+            var currentValue: usize = number;
+            for (0..maps.len) |idx| {
+                currentValue = for (maps[idx].items) |rangeDest| {
+                    if (currentValue >= rangeDest.range.beg and
+                        currentValue <= rangeDest.range.end)
+                    {
+                        // std.debug.print("cur: {d}, beg: {d}\n", .{ currentValue, rangeDest.range.beg });
+                        const diff = currentValue - rangeDest.range.beg;
+                        break rangeDest.dest + diff;
+                    }
+                } else currentValue;
+                // std.debug.print("cur: {d}, new: {d}\n", .{ currentValue, newValue });
+            }
+            // std.debug.print("seed: {d}, location: {d}\n", .{ seed.number, currentValue });
+            sMinLocation = @min(sMinLocation, currentValue);
+        }
+    }
+
+    return .{ .p1 = minLocation, .p2 = sMinLocation };
 }
-
-// pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
-//     var linesIt = std.mem.splitScalar(u8, input, '\n');
-//     var scoreSum: usize = 0;
-//     var totalCardCount: usize = 0;
-//     var cardCounts = CardCount.init(allocator);
-//     defer cardCounts.deinit();
-//     var cardIdx: usize = 0;
-//     while (linesIt.next()) |line| : (cardIdx += 1) {
-//         if (line.len == 0) continue;
-//         const gResult = try parseLine(allocator, line);
-//         if (cardIdx == cardCounts.items.len) {
-//             try cardCounts.append(1); // first time we see this card, count 1 to mark this as processed
-//         } else {
-//             cardCounts.items[cardIdx] += 1; // it already exists, add one to it
-//         }
-//         const currentCardCount = cardCounts.items[cardIdx];
-
-//         const nextIdx: usize = cardIdx + 1;
-//         for (nextIdx..nextIdx + gResult.matchCount) |idx| { // add counts from current wins
-//             if (idx == cardCounts.items.len) {
-//                 try cardCounts.append(currentCardCount); // it doesn't exist, so set correct count straight from the get-go
-//             } else {
-//                 cardCounts.items[idx] += currentCardCount; // it exists, increase its count by the correct value
-//             }
-//         }
-//         scoreSum += gResult.score;
-//     }
-//     for (cardCounts.items) |count| totalCardCount += count;
-//     return .{ .p1 = scoreSum, .p2 = totalCardCount };
-// }
 
 const test_input =
     \\seeds: 79 14 55 13
@@ -147,7 +140,7 @@ const test_input =
 test "examples" {
     const results = try solve(std.testing.allocator, test_input);
     try std.testing.expectEqual(@as(usize, 35), results.p1);
-    // try std.testing.expectEqual(@as(usize, 30), results.p2);
+    try std.testing.expectEqual(@as(usize, 46), results.p2);
 }
 
 pub fn main() !void {
