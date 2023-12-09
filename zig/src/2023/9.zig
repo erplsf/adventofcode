@@ -42,16 +42,13 @@ pub fn parseLine(allocator: std.mem.Allocator, line: []const u8) isize {
             const diff = pair[1] - pair[0];
             ll.items[level + 1].append(diff) catch unreachable;
         }
-        var sum: isize = 0;
         for (ll.items[level + 1].items) |n| {
             if (n != 0) {
                 level += 1;
                 continue :outer;
             }
-            sum += n;
         }
-        if (sum == 0) break;
-        level += 1;
+        break;
     }
 
     // iterate backwards over lists
