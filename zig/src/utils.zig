@@ -30,3 +30,7 @@ pub fn anyOf(comptime T: type, one: T, candidates: []const T) bool {
     }
     return false;
 }
+
+pub inline fn splitByChar(buffer: []const u8, delimiter: u8) std.mem.SplitIterator(u8, .scalar) {
+    return std.mem.splitScalar(u8, buffer, delimiter);
+}
