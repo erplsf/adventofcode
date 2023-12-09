@@ -1,4 +1,5 @@
-// TODO: refactor to search correctly from beginning and end
+// TODO: reuse the results from the first (simple) number search
+// refactor from the complex comptime functions to a simpler check with two separate searches - once for digtits, and once for words.
 const std = @import("std");
 const utils = @import("utils");
 
