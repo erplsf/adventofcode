@@ -55,26 +55,22 @@ pub fn parseLine(allocator: std.mem.Allocator, line: []const u8) isize {
     for (0..ll.items.len - 1) |offset| {
         const ri = ll.items.len - 2 - offset;
         // std.debug.print("ri {d}\n", .{ri});
-        // a, b
-        // c
-        // c == b - a
-        // b = a + c
-        var l = ll.items[ri];
-        const nl = ll.items[ri + 1];
-        const ln = l.getLast();
-        const nln = nl.getLast();
-        const nn = ln + nln;
+        var currentList = ll.items[ri];
+        const nextList = ll.items[ri + 1];
+        const lastInCurrent = currentList.getLast();
+        const lastInNext = nextList.getLast();
+        const newLastForCurrent = lastInCurrent + lastInNext;
         // std.debug.print("nn: {d}\n", .{nn});
-        l.append(nn) catch unreachable;
-        ll.items[ri] = l;
+        currentList.append(newLastForCurrent) catch unreachable;
+        ll.items[ri] = currentList;
     }
 
-    for (ll.items) |l| {
-        for (l.items) |n| {
-            std.debug.print("{d} ", .{n});
-        }
-        std.debug.print("\n", .{});
-    }
+    // for (ll.items) |l| {
+    //     for (l.items) |n| {
+    //         std.debug.print("{d} ", .{n});
+    //     }
+    //     std.debug.print("\n", .{});
+    // }
 
     return ll.items[0].getLast();
 }
