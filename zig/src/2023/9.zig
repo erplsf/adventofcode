@@ -34,7 +34,7 @@ pub fn parseLine(allocator: std.mem.Allocator, line: []const u8) isize {
     }
 
     var level: usize = 0;
-    while (true) {
+    outer: while (true) {
         const numbers = ll.items[level];
         ll.append(NumberList.init(allocator)) catch unreachable;
         var pIt = std.mem.window(isize, numbers.items, 2, 1);
@@ -43,7 +43,13 @@ pub fn parseLine(allocator: std.mem.Allocator, line: []const u8) isize {
             ll.items[level + 1].append(diff) catch unreachable;
         }
         var sum: isize = 0;
-        for (ll.items[level + 1].items) |n| sum += n;
+        for (ll.items[level + 1].items) |n| {
+            if (n != 0) {
+                level += 1;
+                continue :outer;
+            }
+            sum += n;
+        }
         if (sum == 0) break;
         level += 1;
     }
