@@ -11,17 +11,19 @@ const ListList = std.ArrayList(NumberList);
 
 pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     var lIt = std.mem.splitScalar(u8, input, '\n');
-    var sum: isize = 0;
+    var p1sum: isize = 0;
+    var p2sum: isize = 0;
     while (lIt.next()) |line| {
         if (line.len == 0) continue;
-        const number = parseLine(allocator, line);
-        sum += number;
+        const t = parseLine(allocator, line);
+        p1sum += t[1];
+        p2sum += t[0];
     }
 
-    return .{ .p1 = sum, .p2 = 0 };
+    return .{ .p1 = p1sum, .p2 = p2sum };
 }
 
-pub fn parseLine(allocator: std.mem.Allocator, line: []const u8) isize {
+pub fn parseLine(allocator: std.mem.Allocator, line: []const u8) struct { isize, isize } {
     var ll = ListList.init(allocator);
     defer ll.deinit();
     defer for (ll.items) |*l| l.deinit();
@@ -60,8 +62,13 @@ pub fn parseLine(allocator: std.mem.Allocator, line: []const u8) isize {
         const lastInCurrent = currentList.getLast();
         const lastInNext = nextList.getLast();
         const newLastForCurrent = lastInCurrent + lastInNext;
+
+        const firstInCurrent = currentList.items[0];
+        const firstInNext = nextList.items[0];
+        const newFirstForCurrent = firstInCurrent - firstInNext;
         // std.debug.print("nn: {d}\n", .{nn});
         currentList.append(newLastForCurrent) catch unreachable;
+        currentList.insert(0, newFirstForCurrent) catch unreachable;
         ll.items[ri] = currentList;
     }
 
@@ -72,7 +79,7 @@ pub fn parseLine(allocator: std.mem.Allocator, line: []const u8) isize {
     //     std.debug.print("\n", .{});
     // }
 
-    return ll.items[0].getLast();
+    return .{ ll.items[0].items[0], ll.items[0].getLast() };
 }
 
 test "examples" {
@@ -83,6 +90,7 @@ test "examples" {
     ;
     const r1 = try solve(std.testing.allocator, t1);
     try std.testing.expectEqual(@as(isize, 114), r1.p1);
+    try std.testing.expectEqual(@as(isize, 2), r1.p2);
 }
 
 pub fn main() !void {
