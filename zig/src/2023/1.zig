@@ -20,14 +20,39 @@ const Solution = struct {
 };
 
 pub fn solve(input: []const u8) Solution {
-    _ = input;
+    var lIt = std.mem.splitScalar(u8, input, '\n');
+    var p1sum: usize = 0;
+    var p2sum: usize = 0;
+    while (lIt.next()) |line| {
+        if (line.len == 0) continue;
+        const t = parseLine(line);
+        p1sum += t[0];
+        p2sum += t[1];
+    }
 
-    return .{ .p1 = 0, .p2 = 0 };
+    return .{ .p1 = p1sum, .p2 = p2sum };
 }
 
-// pub fn parseLine(line: []const u8, words: bool) usize {
-//     return 0;
-// }
+const searchForwards = std.mem.indexOfAny;
+const searchBackwards = std.mem.lastIndexOfAny;
+
+const Direction = enum {
+    Forwards,
+    Backwards,
+};
+
+pub fn findNumber(comptime direction: Direction, input: []const u8) usize {
+    const searchFn = if (comptime direction == .Forwards) searchForwards else searchBackwards;
+    const i = searchFn(u8, input, "123456789").?;
+    return std.fmt.parseUnsigned(usize, input[i .. i + 1], 10) catch unreachable;
+}
+
+pub fn parseLine(line: []const u8) struct { usize, usize } {
+    const p1fn = findNumber(.Forwards, line);
+    const p2fn = findNumber(.Backwards, line);
+
+    return .{ p1fn * 10 + p2fn, 0 };
+}
 
 test "Part 1" {
     const input =
@@ -93,51 +118,6 @@ pub fn main() !void {
                 }
             }
         }
-
-        // while (std.mem.indexOfAny(u8, line[i..], "123456789")) |pos| {
-
-        // var wIt = std.mem.window(u8, line[i..], 5, 1);
-        // while (wIt.next()) |chunk| {
-        //     std.debug.print("chunk: {s}\n", .{chunk});
-        //     for (0..chunk.len) |c| {
-        //         const digit = std.fmt.parseUnsigned(usize, chunk[c .. c + 1], 10) catch 0;
-        //         if (digit != 0) try digits.append(digit);
-        //     }
-        //     for (words, 1..) |word, d| {
-        //         if (chunk.len < word.len) continue;
-        //         if (std.mem.indexOf(u8, chunk, word)) |_| {
-        //             try digits.append(d);
-        //             break;
-        //         }
-        //     }
-        // }
-
-        // var ii: usize = 0; // HACK: skips numbers
-        // for (words, 1..) |word, d| {
-        //     while (std.mem.indexOf(u8, line[i + ii .. i + pos], word)) |word_pos| {
-        //         std.debug.print("FOUND {d}\n", .{d});
-        //         try digits.append(d);
-        //         ii += word_pos + 1;
-        //     }
-        // }
-
-        // std.debug.print("pos: {d}, n: {c}\n", .{ pos, line[i + pos] });
-        // const digit = try std.fmt.parseUnsigned(usize, line[i + pos .. i + pos + 1], 10);
-        // try digits.append(digit);
-        // i += pos + 1;
-        // }
-
-        // var wIt = std.mem.window(u8, line[i..], 5, 1);
-        // while (wIt.next()) |chunk| {
-        //     for (words, 1..) |word, d| {
-        //         if (std.mem.indexOf(u8, chunk, word)) |_| {
-        //             try digits.append(d);
-        //             break;
-        //         }
-        //     }
-        // }
-
-        // std.mem.lastIndexOf(comptime T: type, haystack: []const T, needle: []const T)
 
         if (digits.items.len == 0) continue;
         std.debug.print("line: {s}, d1: {d}, d2: {d}\n", .{ line, digits.items[0], digits.items[digits.items.len - 1] });
