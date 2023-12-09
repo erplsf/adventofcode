@@ -66,14 +66,14 @@ pub fn findNumber(comptime mode: Mode, comptime direction: Direction, input: []c
         const wI = @reduce(op, v);
         const wNumber: usize = for (is, 1..) |i, n| {
             if (i == wI) break n;
-        } else fillValue;
+        } else fillValue; // TODO: very hacky, refactor
         if (maybeDigitIndex) |dI| {
             const i = if (comptime direction == .Forwards)
                 @min(dI, wI)
             else
                 @max(dI, wI);
 
-            if (i == wI) {
+            if (i == wI) { // TODO: very hacky, refactor
                 if (wI == fillValue) return std.fmt.parseUnsigned(usize, input[dI .. dI + 1], 10) catch unreachable else return wNumber;
             } else {
                 return std.fmt.parseUnsigned(usize, input[dI .. dI + 1], 10) catch unreachable;
@@ -123,13 +123,6 @@ test "Part 2" {
 }
 
 test "freak tests" {
-    // const input =
-    //     \\threeight
-    //     \\sevenine
-    //     \\oneight
-    //     \\zoneight234
-    // ;
-
     try std.testing.expectEqual(@as(usize, 0), solve("threeight").p1);
     try std.testing.expectEqual(@as(usize, 38), solve("threeight").p2);
     try std.testing.expectEqual(@as(usize, 88), solve("threight").p2);
