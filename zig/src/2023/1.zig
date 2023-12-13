@@ -1,5 +1,6 @@
-// TODO: reuse the results from the first (simple) number search
-// refactor from the complex comptime functions to a simpler check with two separate searches - once for digtits, and once for words.
+// TODO: reuse the results from the first (simple) number search and compare the indices for part 2
+// TODO: refactor from the complex comptime functions to a simpler check with two separate searches - on for digtits, and on for words.
+// TODO: do not parse numbers, return the index found via the helper function
 const std = @import("std");
 const utils = @import("utils");
 
