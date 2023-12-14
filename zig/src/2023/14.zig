@@ -29,7 +29,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) !Solution {
     const colCount: usize = map[0].len;
     for (0..colCount) |c| {
         // std.debug.print("c: {d}\n", .{c});
-        processColumn(&map, c);
+        tiltNorth(&map, c);
     }
 
     // printMap(map);
@@ -54,7 +54,7 @@ pub fn printMap(map: []const []u8) void {
     }
 }
 
-pub fn processColumn(map: *[]const []u8, column: usize) void {
+pub fn tiltNorth(map: *[]const []u8, column: usize) void {
     var m = map.*;
     const rowCount = map.len;
     var r: usize = 0;
