@@ -35,17 +35,22 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) !Solution {
     // printMap(map);
     // std.debug.print("\n", .{});
 
-    var totalLoad: usize = 0;
-    for (0..map.len) |r| {
-        for (0..map[r].len) |c| {
-            if (map[r][c] == 'O') totalLoad += map.len - r;
-        }
-    }
+    const northLoad: usize = calcNorthLoad(map);
 
-    return .{ .p1 = totalLoad, .p2 = 0 };
+    return .{ .p1 = northLoad, .p2 = 0 };
 }
 
-pub fn printMap(map: []const []u8) void {
+pub fn calcNorthLoad(map: []const []const u8) usize {
+    var northLoad: usize = 0;
+    for (0..map.len) |r| {
+        for (0..map[r].len) |c| {
+            if (map[r][c] == 'O') northLoad += map.len - r;
+        }
+    }
+    return northLoad;
+}
+
+pub fn printMap(map: []const []const u8) void {
     for (0..map.len) |r| {
         for (0..map[r].len) |c| {
             std.debug.print("{c}", .{map[r][c]});
