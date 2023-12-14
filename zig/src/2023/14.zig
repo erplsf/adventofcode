@@ -73,12 +73,6 @@ pub fn tilt(map: *[]const []u8, comptime direction: Direction) void {
         .west => 0, // right-to-left, to zero
         .east => m[0].len, // left-to-right, to the length of row
     };
-    const step: i2 = switch (comptime direction) {
-        .north => 1, // moving down
-        .south => -1, // moving up
-        .west => -1, // moving left
-        .east => 1, // moving right
-    };
     const axisLimit = switch (comptime direction) {
         .north, .south => m[0].len, // tilt up or down for each column
         .west, .east => m.len, // tilt left or right for each row
@@ -105,13 +99,19 @@ pub fn tilt(map: *[]const []u8, comptime direction: Direction) void {
             switch (objPos.*) {
                 '#' => { // cube-shaped rock (wall)
                     freePos = null; // reset the free position, as rocks can't move past the wall
-                    i += step;
+                    switch (comptime direction) {
+                        .north, .east => i += 1,
+                        .south, .west => i -= 1,
+                    }
                 },
                 '.' => { // free space
                     if (freePos == null) {
                         freePos = i; // only record the row the first time we see free space
                     }
-                    i += step;
+                    switch (comptime direction) {
+                        .north, .east => i += 1,
+                        .south, .west => i -= 1,
+                    }
                 },
                 'O' => { // movable rock
                     if (freePos) |fr| { // if there's a free row, move our rock to it
@@ -123,9 +123,16 @@ pub fn tilt(map: *[]const []u8, comptime direction: Direction) void {
                         freeSpace.* = 'O'; // move the rock to free space
                         objPos.* = '.'; // mark space under rock as free
                         freePos = null; // there's no more free space, we need to search for it again
-                        i = fr + step; // start searching from the next row after the one we placed our rock into
+
+                        switch (comptime direction) { // start searching from the next row after the one we placed our rock into
+                            .north, .east => i = fr + 1,
+                            .south, .west => i = fr - 1,
+                        }
                     } else {
-                        i += step;
+                        switch (comptime direction) {
+                            .north, .east => i += 1,
+                            .south, .west => i -= 1,
+                        }
                     }
                 },
                 else => unreachable,
