@@ -62,14 +62,28 @@ const Direction = enum {
 };
 
 pub fn tilt(map: *[]const []u8, axis: usize, comptime direction: Direction) void {
-    _ = direction;
-
     var m = map.*;
-    const maxPosCount = map.len;
-    var i: usize = 0;
+    const posLimit = switch (comptime direction) {
+        .north => m.len, // moving up-to-down, to the length of column
+        .south => 0, // down-to-up, to zero
+        .west => 0, // right-to-left, to zero
+        .east => m[0].len, // left-to-right, to the length of row
+    };
+    var i: usize = switch (comptime direction) {
+        .north => 0, // start from beginning of the column
+        .south => m.len - 1, // start from the end of the column
+        .west => m[0].len - 1, // start from the end of the row
+        .east => 0, // start from the end ofthe row
+    };
+    const step: i2 = switch (comptime direction) {
+        .north => 1, // moving down
+        .south => -1, // moving up
+        .west => -1, // moving left
+        .east => 1, // moving right
+    };
     var freePos: ?usize = null;
     // std.debug.print("rowCount: {d}", .{rowCount});
-    while (i != maxPosCount) {
+    while (i != posLimit) {
         // std.debug.print("r: {d}\n", .{r});
         // std.debug.print("char {c} at [{d}][{d}]\n", .{ m[r][column], r, column });
 
@@ -78,13 +92,13 @@ pub fn tilt(map: *[]const []u8, axis: usize, comptime direction: Direction) void
         switch (obj) {
             '#' => { // cube-shaped rock (wall)
                 freePos = null; // reset the free position, as rocks can't move past the wall
-                i += 1;
+                i += step;
             },
             '.' => { // free space
                 if (freePos == null) {
                     freePos = i; // only record the row the first time we see free space
                 }
-                i += 1;
+                i += step;
             },
             'O' => { // movable rock
                 if (freePos) |fr| { // if there's a free row, move our rock to it
@@ -92,9 +106,9 @@ pub fn tilt(map: *[]const []u8, axis: usize, comptime direction: Direction) void
                     m[fr][axis] = 'O'; // move the rock to free space
                     m[i][axis] = '.'; // mark space under rock as free
                     freePos = null; // there's no more free space, we need to search for it again
-                    i = fr + 1; // start searching from the next row after the one we placed our rock into
+                    i = fr + step; // start searching from the next row after the one we placed our rock into
                 } else {
-                    i += 1;
+                    i += step;
                 }
             },
             else => unreachable,
