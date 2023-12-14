@@ -64,7 +64,9 @@ pub fn tiltNorth(map: *[]const []u8, column: usize) void {
         // std.debug.print("r: {d}\n", .{r});
         // std.debug.print("char {c} at [{d}][{d}]\n", .{ m[r][column], r, column });
 
-        switch (m[i][column]) {
+        const obj = m[i][column];
+
+        switch (obj) {
             '#' => { // cube-shaped rock (wall)
                 freePos = null; // reset the free position, as rocks can't move past the wall
                 i += 1;
