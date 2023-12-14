@@ -26,11 +26,10 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) !Solution {
     // printMap(map);
     // std.debug.print("\n", .{});
 
-    const colCount: usize = map[0].len;
-    for (0..colCount) |c| {
-        // std.debug.print("c: {d}\n", .{c});
-        tilt(&map, c, .north);
-    }
+    tilt(&map, .north);
+
+    // const cycleCount = 1000000000;
+    // for (0..cycleCount) |_| {}
 
     // printMap(map);
     // std.debug.print("\n", .{});
@@ -66,7 +65,7 @@ const Direction = enum {
     east, // right
 };
 
-pub fn tilt(map: *[]const []u8, axis: usize, comptime direction: Direction) void {
+pub fn tilt(map: *[]const []u8, comptime direction: Direction) void {
     var m = map.*;
     const posLimit = switch (comptime direction) {
         .north => m.len, // moving up-to-down, to the length of column
@@ -74,49 +73,63 @@ pub fn tilt(map: *[]const []u8, axis: usize, comptime direction: Direction) void
         .west => 0, // right-to-left, to zero
         .east => m[0].len, // left-to-right, to the length of row
     };
-    var i: usize = switch (comptime direction) {
-        .north => 0, // start from beginning of the column
-        .south => m.len - 1, // start from the end of the column
-        .west => m[0].len - 1, // start from the end of the row
-        .east => 0, // start from the end ofthe row
-    };
     const step: i2 = switch (comptime direction) {
         .north => 1, // moving down
         .south => -1, // moving up
         .west => -1, // moving left
         .east => 1, // moving right
     };
-    var freePos: ?usize = null;
+    const axisLimit = switch (comptime direction) {
+        .north, .south => m[0].len, // tilt up or down for each column
+        .west, .east => m.len, // tilt left or right for each row
+    };
     // std.debug.print("rowCount: {d}", .{rowCount});
-    while (i != posLimit) {
-        // std.debug.print("r: {d}\n", .{r});
-        // std.debug.print("char {c} at [{d}][{d}]\n", .{ m[r][column], r, column });
 
-        const obj = m[i][axis];
+    for (0..axisLimit) |axis| {
+        var freePos: ?usize = null;
+        var i: usize = switch (comptime direction) {
+            .north => 0, // start from beginning of the column
+            .south => m.len - 1, // start from the end of the column
+            .west => m[0].len - 1, // start from the end of the row
+            .east => 0, // start from the end ofthe row
+        };
+        while (i != posLimit) {
+            // std.debug.print("r: {d}\n", .{r});
+            // std.debug.print("char {c} at [{d}][{d}]\n", .{ m[r][column], r, column });
 
-        switch (obj) {
-            '#' => { // cube-shaped rock (wall)
-                freePos = null; // reset the free position, as rocks can't move past the wall
-                i += step;
-            },
-            '.' => { // free space
-                if (freePos == null) {
-                    freePos = i; // only record the row the first time we see free space
-                }
-                i += step;
-            },
-            'O' => { // movable rock
-                if (freePos) |fr| { // if there's a free row, move our rock to it
-                    // std.debug.print("found rock at [{d}][{d}] moving it to [{d}][{d}]\n", .{ r, column, fr, column });
-                    m[fr][axis] = 'O'; // move the rock to free space
-                    m[i][axis] = '.'; // mark space under rock as free
-                    freePos = null; // there's no more free space, we need to search for it again
-                    i = fr + step; // start searching from the next row after the one we placed our rock into
-                } else {
+            const objPos = switch (comptime direction) {
+                .north, .south => &m[i][axis], // grab object in each column
+                .east, .west => &m[axis][i], // grab object in each row
+            };
+
+            switch (objPos.*) {
+                '#' => { // cube-shaped rock (wall)
+                    freePos = null; // reset the free position, as rocks can't move past the wall
                     i += step;
-                }
-            },
-            else => unreachable,
+                },
+                '.' => { // free space
+                    if (freePos == null) {
+                        freePos = i; // only record the row the first time we see free space
+                    }
+                    i += step;
+                },
+                'O' => { // movable rock
+                    if (freePos) |fr| { // if there's a free row, move our rock to it
+                        // std.debug.print("found rock at [{d}][{d}] moving it to [{d}][{d}]\n", .{ r, column, fr, column });
+                        const freeSpace = switch (comptime direction) {
+                            .north, .south => &m[fr][axis],
+                            .east, .west => &m[axis][fr],
+                        };
+                        freeSpace.* = 'O'; // move the rock to free space
+                        objPos.* = '.'; // mark space under rock as free
+                        freePos = null; // there's no more free space, we need to search for it again
+                        i = fr + step; // start searching from the next row after the one we placed our rock into
+                    } else {
+                        i += step;
+                    }
+                },
+                else => unreachable,
+            }
         }
     }
 }
