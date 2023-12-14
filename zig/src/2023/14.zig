@@ -56,36 +56,36 @@ pub fn printMap(map: []const []u8) void {
 
 pub fn tiltNorth(map: *[]const []u8, column: usize) void {
     var m = map.*;
-    const rowCount = map.len;
-    var r: usize = 0;
-    var freeRow: ?usize = null;
+    const maxPosCount = map.len;
+    var i: usize = 0;
+    var freePos: ?usize = null;
     // std.debug.print("rowCount: {d}", .{rowCount});
-    while (r < rowCount) {
+    while (i < maxPosCount) {
         // std.debug.print("r: {d}\n", .{r});
         // std.debug.print("char {c} at [{d}][{d}]\n", .{ m[r][column], r, column });
 
-        if (m[r][column] == '#') { // reset free space on cube-shaped rock
+        if (m[i][column] == '#') { // reset free space on cube-shaped rock
             // std.debug.print("found cube-rock at [{d}][{d}]\n", .{ r, column });
-            freeRow = null;
-            r += 1;
+            freePos = null;
+            i += 1;
             continue;
-        } else if (m[r][column] == '.') { // remember free space
+        } else if (m[i][column] == '.') { // remember free space
             // std.debug.print("found free space at [{d}][{d}]\n", .{ r, column });
-            if (freeRow == null) {
-                freeRow = r; // only record the row the first time we see free space
+            if (freePos == null) {
+                freePos = i; // only record the row the first time we see free space
             }
-            r += 1;
+            i += 1;
             continue;
-        } else if (m[r][column] == 'O') {
-            if (freeRow) |fr| { // if there's a free row, move our rock to it
+        } else if (m[i][column] == 'O') {
+            if (freePos) |fr| { // if there's a free row, move our rock to it
                 // std.debug.print("found rock at [{d}][{d}] moving it to [{d}][{d}]\n", .{ r, column, fr, column });
                 m[fr][column] = 'O'; // move the rock to free space
-                m[r][column] = '.'; // mark space under rock as free
-                freeRow = null; // there's no more free space, we need to search for it again
-                r = fr + 1; // start searching from the next row after the one we placed our rock into
+                m[i][column] = '.'; // mark space under rock as free
+                freePos = null; // there's no more free space, we need to search for it again
+                i = fr + 1; // start searching from the next row after the one we placed our rock into
                 continue;
             } else {
-                r += 1;
+                i += 1;
                 continue;
             }
         }
