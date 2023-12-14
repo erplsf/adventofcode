@@ -5,7 +5,7 @@ pub const AocError = error{
     InputParseProblem,
 };
 
-pub fn readFile(allocator: std.mem.Allocator) ![]const u8 {
+pub fn readFile(allocator: std.mem.Allocator) ![]u8 {
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
     if (args.len > 1) {
