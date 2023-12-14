@@ -27,6 +27,10 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) !Solution {
     // std.debug.print("\n", .{});
 
     tilt(&map, .north);
+    const firstNorthTilt: usize = calcNorthLoad(map);
+    tilt(&map, .west);
+    tilt(&map, .south);
+    tilt(&map, .east);
 
     // const cycleCount = 1000000000;
     // for (0..cycleCount) |_| {}
@@ -34,9 +38,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) !Solution {
     // printMap(map);
     // std.debug.print("\n", .{});
 
-    const northLoad: usize = calcNorthLoad(map);
-
-    return .{ .p1 = northLoad, .p2 = 0 };
+    return .{ .p1 = firstNorthTilt, .p2 = 0 };
 }
 
 pub fn calcNorthLoad(map: []const []const u8) usize {
