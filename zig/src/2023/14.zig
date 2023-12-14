@@ -60,22 +60,22 @@ pub fn tiltNorth(map: *[]const []u8, column: usize) void {
     var i: usize = 0;
     var freePos: ?usize = null;
     // std.debug.print("rowCount: {d}", .{rowCount});
-    while (i < maxPosCount) {
+    while (i != maxPosCount) {
         // std.debug.print("r: {d}\n", .{r});
         // std.debug.print("char {c} at [{d}][{d}]\n", .{ m[r][column], r, column });
 
         switch (m[i][column]) {
-            '#' => {
-                freePos = null;
+            '#' => { // cube-shaped rock (wall)
+                freePos = null; // reset the free position, as rocks can't move past the wall
                 i += 1;
             },
-            '.' => {
+            '.' => { // free space
                 if (freePos == null) {
                     freePos = i; // only record the row the first time we see free space
                 }
                 i += 1;
             },
-            'O' => {
+            'O' => { // movable rock
                 if (freePos) |fr| { // if there's a free row, move our rock to it
                     // std.debug.print("found rock at [{d}][{d}] moving it to [{d}][{d}]\n", .{ r, column, fr, column });
                     m[fr][column] = 'O'; // move the rock to free space
