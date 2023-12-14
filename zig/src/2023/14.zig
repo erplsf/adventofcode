@@ -1,3 +1,4 @@
+// TODO: ugly, think if it can be rewritten without hashmap
 const std = @import("std");
 const utils = @import("utils");
 
