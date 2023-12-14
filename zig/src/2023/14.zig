@@ -29,7 +29,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []u8) !Solution {
     const colCount: usize = map[0].len;
     for (0..colCount) |c| {
         // std.debug.print("c: {d}\n", .{c});
-        tiltNorth(&map, c);
+        tilt(&map, c, .north);
     }
 
     // printMap(map);
@@ -54,7 +54,16 @@ pub fn printMap(map: []const []u8) void {
     }
 }
 
-pub fn tiltNorth(map: *[]const []u8, column: usize) void {
+const Direction = enum {
+    north, // up
+    west, // left
+    south, // down
+    east, // right
+};
+
+pub fn tilt(map: *[]const []u8, axis: usize, comptime direction: Direction) void {
+    _ = direction;
+
     var m = map.*;
     const maxPosCount = map.len;
     var i: usize = 0;
@@ -64,7 +73,7 @@ pub fn tiltNorth(map: *[]const []u8, column: usize) void {
         // std.debug.print("r: {d}\n", .{r});
         // std.debug.print("char {c} at [{d}][{d}]\n", .{ m[r][column], r, column });
 
-        const obj = m[i][column];
+        const obj = m[i][axis];
 
         switch (obj) {
             '#' => { // cube-shaped rock (wall)
@@ -80,8 +89,8 @@ pub fn tiltNorth(map: *[]const []u8, column: usize) void {
             'O' => { // movable rock
                 if (freePos) |fr| { // if there's a free row, move our rock to it
                     // std.debug.print("found rock at [{d}][{d}] moving it to [{d}][{d}]\n", .{ r, column, fr, column });
-                    m[fr][column] = 'O'; // move the rock to free space
-                    m[i][column] = '.'; // mark space under rock as free
+                    m[fr][axis] = 'O'; // move the rock to free space
+                    m[i][axis] = '.'; // mark space under rock as free
                     freePos = null; // there's no more free space, we need to search for it again
                     i = fr + 1; // start searching from the next row after the one we placed our rock into
                 } else {
