@@ -99,7 +99,7 @@ pub fn build(b: *std.Build) !void {
             .optimize = optimize,
         });
 
-        exe.addModule("utils", utils);
+        exe.root_module.addImport("utils", utils);
 
         // for (packages) |package| {
         //     exe.addPackagePath(package.name, package.path);
@@ -122,7 +122,7 @@ pub fn build(b: *std.Build) !void {
             .optimize = optimize,
         });
 
-        exe_tests.addModule("utils", utils);
+        exe_tests.root_module.addImport("utils", utils);
 
         const run_exe_tests = b.addRunArtifact(exe_tests);
 
