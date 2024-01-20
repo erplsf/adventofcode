@@ -45,10 +45,10 @@ pub fn build(b: *std.Build) !void {
         solutions.deinit();
     }
 
-    var tests = std.ArrayList(*std.build.Step).init(allocator);
+    var tests = std.ArrayList(*std.Build.Step).init(allocator);
     defer tests.deinit();
 
-    var dir = try std.fs.cwd().openIterableDir("src", .{});
+    var dir = try std.fs.cwd().openDir("src", .{ .iterate = true });
     defer dir.close();
 
     var iter = dir.iterate();
@@ -64,7 +64,7 @@ pub fn build(b: *std.Build) !void {
             const year_dir_realpath = try std.fs.realpathAlloc(allocator, year_dir_path);
             defer allocator.free(year_dir_realpath);
 
-            var year_dir = try std.fs.openIterableDirAbsolute(year_dir_realpath, .{});
+            var year_dir = try std.fs.openDirAbsolute(year_dir_realpath, .{ .iterate = true });
             defer year_dir.close();
 
             var year_iter = year_dir.iterate();
@@ -88,7 +88,7 @@ pub fn build(b: *std.Build) !void {
         }
     }
 
-    const utils = b.createModule(.{ .source_file = .{ .path = "src/utils.zig" } });
+    const utils = b.createModule(.{ .root_source_file = .{ .path = "src/utils.zig" } });
 
     for (solutions.items) |solution| {
         // std.debug.print("{d} {d} {s} {s}\n", solution);
