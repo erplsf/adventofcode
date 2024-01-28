@@ -49,3 +49,13 @@ pub fn parseNumbers(allocator: std.mem.Allocator, comptime T: type, input: []con
 
     return array;
 }
+
+pub fn squashNumbers(array: std.ArrayList(usize)) !usize {
+    var sum: usize = 0;
+    for (array.items) |elem| {
+        const multiplier: usize = try std.math.powi(usize, 10, std.math.log10_int(elem) + 1);
+        // std.debug.print("n: {}, m: {}\n", .{ elem, multiplier });
+        sum = sum * multiplier + elem;
+    }
+    return sum;
+}

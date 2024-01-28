@@ -10,16 +10,6 @@ const Solution = struct {
 
 const ValuesList = std.ArrayList(usize);
 
-pub fn squashNumbers(array: std.ArrayList(usize)) !usize {
-    var sum: usize = 0;
-    for (array.items) |elem| {
-        const multiplier: usize = try std.math.powi(usize, 10, std.math.log10_int(elem) + 1);
-        // std.debug.print("n: {}, m: {}\n", .{ elem, multiplier });
-        sum = sum * multiplier + elem;
-    }
-    return sum;
-}
-
 pub fn calcWays(time: usize, distance: usize) usize {
     const time_f: f64 = @floatFromInt(time);
     const distance_f: f64 = @floatFromInt(distance);
@@ -68,8 +58,8 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
         margin *= calcWays(times.items[i], distances.items[i]);
     }
 
-    const squashed_times = try squashNumbers(times);
-    const squashed_distances = try squashNumbers(distances);
+    const squashed_times = try utils.squashNumbers(times);
+    const squashed_distances = try utils.squashNumbers(distances);
     std.debug.print("{} {}\n", .{ squashed_times, squashed_distances });
 
     const squashed_ways = calcWays(squashed_times, squashed_distances);
