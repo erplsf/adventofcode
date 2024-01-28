@@ -34,3 +34,18 @@ pub fn anyOf(comptime T: type, one: T, candidates: []const T) bool {
 pub inline fn splitByChar(buffer: []const u8, delimiter: u8) std.mem.SplitIterator(u8, .scalar) {
     return std.mem.splitScalar(u8, buffer, delimiter);
 }
+
+pub fn parseNumbers(allocator: std.mem.Allocator, comptime T: type, input: []const u8) !std.ArrayList(T) {
+    var array: std.ArrayList(T) = std.ArrayList(T).init(allocator);
+    errdefer array.deinit();
+
+    var it = utils.splitByChar(input, ' ');
+
+    while (it.next()) |part| {
+        if (part.len == 0) continue; // to completely skip double spaces/whitespace between numbers
+        const number = try std.fmt.parseInt(T, part, 10);
+        try array.append(number);
+    }
+
+    return array;
+}

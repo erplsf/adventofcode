@@ -10,20 +10,6 @@ const Solution = struct {
 
 const ValuesList = std.ArrayList(usize);
 
-pub fn parseNumbers(allocator: std.mem.Allocator, comptime T: type, input: []const u8) !std.ArrayList(T) {
-    var array: std.ArrayList(T) = std.ArrayList(T).init(allocator);
-
-    var it = utils.splitByChar(input, ' ');
-
-    while (it.next()) |part| {
-        if (part.len == 0) continue; // to completely skip double spaces/whitespace between numbers
-        const number = try std.fmt.parseInt(T, part, 10);
-        try array.append(number);
-    }
-
-    return array;
-}
-
 pub fn squashNumbers(array: std.ArrayList(usize)) !usize {
     var sum: usize = 0;
     for (array.items) |elem| {
@@ -62,13 +48,13 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     var times_text_it = utils.splitByChar(times_line, ':');
     _ = times_text_it.next();
     const times_part = times_text_it.next() orelse return utils.AocError.InputParseProblem;
-    var times = try parseNumbers(allocator, usize, times_part);
+    var times = try utils.parseNumbers(allocator, usize, times_part);
     defer times.deinit();
 
     var distances_text_it = utils.splitByChar(distances_text, ':');
     _ = distances_text_it.next();
     const distances_part = distances_text_it.next() orelse return utils.AocError.InputParseProblem;
-    var distances = try parseNumbers(allocator, usize, distances_part);
+    var distances = try utils.parseNumbers(allocator, usize, distances_part);
     defer distances.deinit();
 
     // std.debug.print("{any}\n", .{times.items});
