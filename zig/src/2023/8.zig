@@ -51,6 +51,18 @@ const Network = struct {
         }
         return step_count;
     }
+
+    pub fn gatherAllANodes(self: *const Network, allocator: std.mem.Allocator) !std.ArrayList([]const u8) {
+        var nodes = std.ArrayList([]const u8).init(allocator);
+        errdefer nodes.deinit();
+
+        var key_it = self.nodes.keyIterator();
+        while (key_it.next()) |key| {
+            if (key.*[2] == 'A') try nodes.append(key.*);
+        }
+
+        return nodes;
+    }
 };
 
 pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
@@ -96,9 +108,35 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
         try network.addNode(node_part, pair);
     }
 
-    const step_count = try network.countStepsTillZ("AAA", instructions.items);
+    // const step_count = try network.countStepsTillZ("AAA", instructions.items);
 
-    return .{ .p1 = step_count, .p2 = 0 };
+    var all_a_nodes = try network.gatherAllANodes(allocator);
+    defer all_a_nodes.deinit();
+
+    // std.debug.print("{s}\n", .{all_a_nodes.items});
+
+    var step_counts = try allocator.alloc(usize, all_a_nodes.items.len);
+    defer allocator.free(step_counts);
+
+    for (0..step_counts.len) |i| {
+        step_counts[i] = try network.countStepsTillZ(all_a_nodes.items[i], instructions.items);
+    }
+
+    // std.debug.print("step_counts: {any}\n", .{step_counts});
+
+    const aaa_pos: usize = for (0..all_a_nodes.items.len) |i| {
+        if (std.mem.eql(u8, all_a_nodes.items[i], "AAA")) break i;
+    } else return utils.AocError.InputParseProblem;
+    const aaa_step_count = step_counts[aaa_pos];
+
+    var total_step_count: usize = step_counts[0];
+    for (1..step_counts.len) |i| {
+        const gcd = std.math.gcd(total_step_count, step_counts[i]);
+        const lcm = total_step_count * (step_counts[i] / gcd);
+        total_step_count = lcm;
+    }
+
+    return .{ .p1 = aaa_step_count, .p2 = total_step_count };
 }
 
 const test_input_one =
@@ -121,14 +159,22 @@ const test_input_two =
     \\ZZZ = (ZZZ, ZZZ)
 ;
 
+const test_input_three =
+    \\LLR
+    \\
+    \\AAA = (BBB, BBB)
+    \\BBB = (AAA, ZZZ)
+    \\ZZZ = (ZZZ, ZZZ)
+;
+
 test "examples" {
     const results_one = try solve(std.testing.allocator, test_input_one);
     try std.testing.expectEqual(@as(usize, 2), results_one.p1);
-    // try std.testing.expectEqual(@as(usize, 5905), results_one.p2);
+    try std.testing.expectEqual(@as(usize, 2), results_one.p2);
 
     const results_two = try solve(std.testing.allocator, test_input_two);
     try std.testing.expectEqual(@as(usize, 6), results_two.p1);
-    // try std.testing.expectEqual(@as(usize, 5905), results.p2);
+    try std.testing.expectEqual(@as(usize, 6), results_two.p2);
 }
 
 pub fn main() !void {
