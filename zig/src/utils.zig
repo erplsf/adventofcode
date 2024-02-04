@@ -39,7 +39,7 @@ pub fn parseNumbers(allocator: std.mem.Allocator, comptime T: type, input: []con
     var array: std.ArrayList(T) = std.ArrayList(T).init(allocator);
     errdefer array.deinit();
 
-    var it = utils.splitByChar(input, ' ');
+    var it = splitByChar(input, ' ');
 
     while (it.next()) |part| {
         if (part.len == 0) continue; // to completely skip double spaces/whitespace between numbers
