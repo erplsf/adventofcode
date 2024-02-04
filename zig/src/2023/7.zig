@@ -1,4 +1,4 @@
-// TODO: solve without brute-forcing, but with proper ranges
+// TODO: solve without stupid hack (manual move of J to the first position in the enum to accommodate day 2)
 const std = @import("std");
 const utils = @import("utils");
 const assert = std.debug.assert;
@@ -66,7 +66,7 @@ const Hand = struct {
     rank: Rank,
     bid: usize,
 
-    pub fn build(allocator: std.mem.Allocator, input: []const u8) !Hand {
+    pub fn build(input: []const u8) !Hand {
         var hand = Hand{
             .cards = undefined,
             .rank = undefined,
@@ -78,14 +78,13 @@ const Hand = struct {
         const bid_text = parts_it.next() orelse return utils.AocError.InputParseProblem;
 
         for (hand_text, 0..) |char, i| hand.cards[i] = try Card.mapFromChar(char);
-        hand.rank = try hand.calculateRank(allocator);
 
         hand.bid = try std.fmt.parseUnsigned(usize, bid_text, 10);
 
         return hand;
     }
 
-    pub fn calculateRank(self: *Hand, allocator: std.mem.Allocator) !Rank {
+    pub fn calculateRank(self: *const Hand, allocator: std.mem.Allocator, jokers: bool) !Rank {
         var counts = std.AutoArrayHashMap(Card, usize).init(allocator);
         defer counts.deinit();
 
@@ -103,6 +102,14 @@ const Hand = struct {
         };
 
         counts.sort(C{ .values = counts.values() });
+
+        if (jokers and counts.count() > 1) {
+            if (counts.get(Card.J)) |jokers_count| {
+                _ = counts.orderedRemove(Card.J);
+                counts.values()[0] += jokers_count;
+            }
+        }
+
         const values = counts.values();
 
         switch (counts.count()) {
@@ -141,7 +148,8 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     while (lines_it.next()) |line| {
         if (line.len == 0) continue;
 
-        const hand = try Hand.build(allocator, line);
+        var hand = try Hand.build(line);
+        hand.rank = try hand.calculateRank(allocator, false);
         try hands.append(hand);
         // std.debug.print("{any}\n", .{hand});
     }
@@ -164,12 +172,20 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !Solution {
     std.sort.insertion(Hand, hands.items, {}, C.lessThan);
     // std.debug.print("{any}\n", .{hands.items});
 
-    var winnings: usize = 0;
+    var winnings_p1: usize = 0;
     for (hands.items, 1..) |hand, rank| {
-        winnings += hand.bid * rank;
+        winnings_p1 += hand.bid * rank;
     }
 
-    return .{ .p1 = winnings, .p2 = 0 };
+    for (hands.items) |*hand| hand.rank = try hand.calculateRank(allocator, true);
+    std.sort.insertion(Hand, hands.items, {}, C.lessThan);
+
+    var winnings_p2: usize = 0;
+    for (hands.items, 1..) |hand, rank| {
+        winnings_p2 += hand.bid * rank;
+    }
+
+    return .{ .p1 = winnings_p1, .p2 = winnings_p2 };
 }
 
 const test_input =
@@ -183,6 +199,7 @@ const test_input =
 test "examples" {
     const results = try solve(std.testing.allocator, test_input);
     try std.testing.expectEqual(@as(usize, 6440), results.p1);
+    try std.testing.expectEqual(@as(usize, 5905), results.p2);
 }
 
 pub fn main() !void {
