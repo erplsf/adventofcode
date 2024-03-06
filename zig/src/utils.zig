@@ -59,3 +59,12 @@ pub fn squashNumbers(array: std.ArrayList(usize)) !usize {
     }
     return sum;
 }
+
+pub fn arraify(allocator: std.mem.Allocator, input: []const u8) ![][]const u8 {
+    var map = std.ArrayList([]const u8).init(allocator);
+
+    var it = splitByChar(input, '\n');
+    while (it.next()) |line| try map.append(line);
+
+    return map.toOwnedSlice();
+}
