@@ -1,158 +1,91 @@
 const std = @import("std");
 
-const Solution = struct {
-    year: u16,
-    day: u8,
-    solution_name: []const u8,
-    solution_test_name: []const u8,
-    relative_path: []const u8,
-};
-
-const Package = struct {
-    name: []const u8,
-    path: []const u8,
-    tests: bool = false,
-};
-
-// const packages = &[_]Package{
-//     .{ .name = "aoc", .path = "src/aoc.zig" },
-//     .{ .name = "pm", .path = "src/permute.zig", .tests = true },
-//     .{ .name = "ug", .path = "src/ug.zig", .tests = true },
-// };
-
-pub fn build(b: *std.Build) !void {
+// Although this function looks imperative, note that its job is to
+// declaratively construct a build graph that will be executed by an external
+// runner.
+pub fn build(b: *std.Build) void {
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
     // for restricting supported target set are available.
     const target = b.standardTargetOptions(.{});
 
-    // Standard release options allow the person running `zig build` to select
-    // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
+    // Standard optimization options allow the person running `zig build` to select
+    // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall. Here we do not
+    // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
+    const lib = b.addStaticLibrary(.{
+        .name = "zig",
+        // In this case the main source file is merely a path, however, in more
+        // complicated build scripts, this could be a generated file.
+        .root_source_file = b.path("src/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
-    var solutions = std.ArrayList(Solution).init(allocator);
-    defer {
-        for (solutions.items) |solution| {
-            allocator.free(solution.solution_name);
-            allocator.free(solution.relative_path);
-            allocator.free(solution.solution_test_name);
-        }
-        solutions.deinit();
+    // This declares intent for the library to be installed into the standard
+    // location when the user invokes the "install" step (the default step when
+    // running `zig build`).
+    b.installArtifact(lib);
+
+    const exe = b.addExecutable(.{
+        .name = "zig",
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    // This declares intent for the executable to be installed into the
+    // standard location when the user invokes the "install" step (the default
+    // step when running `zig build`).
+    b.installArtifact(exe);
+
+    // This *creates* a Run step in the build graph, to be executed when another
+    // step is evaluated that depends on it. The next line below will establish
+    // such a dependency.
+    const run_cmd = b.addRunArtifact(exe);
+
+    // By making the run step depend on the install step, it will be run from the
+    // installation directory rather than directly from within the cache directory.
+    // This is not necessary, however, if the application depends on other installed
+    // files, this ensures they will be present and in the expected location.
+    run_cmd.step.dependOn(b.getInstallStep());
+
+    // This allows the user to pass arguments to the application in the build
+    // command itself, like this: `zig build run -- arg1 arg2 etc`
+    if (b.args) |args| {
+        run_cmd.addArgs(args);
     }
 
-    var tests = std.ArrayList(*std.Build.Step).init(allocator);
-    defer tests.deinit();
+    // This creates a build step. It will be visible in the `zig build --help` menu,
+    // and can be selected like this: `zig build run`
+    // This will evaluate the `run` step rather than the default, which is "install".
+    const run_step = b.step("run", "Run the app");
+    run_step.dependOn(&run_cmd.step);
 
-    var dir = try std.fs.cwd().openDir("src", .{ .iterate = true });
-    defer dir.close();
+    // Creates a step for unit testing. This only builds the test executable
+    // but does not run it.
+    const lib_unit_tests = b.addTest(.{
+        .root_source_file = b.path("src/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
-    var iter = dir.iterate();
-    while (try iter.next()) |entry| {
-        // std.debug.print("name: {s} kind: {}\n", .{entry.name, entry.kind});
-        if (entry.kind == .directory) {
-            if (std.mem.startsWith(u8, entry.name, "disabled")) continue; // skip processing the whole folder if it's marked as "disabled"
+    const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
 
-            // entry is a year
-            const year_dir_path = try std.fmt.allocPrint(allocator, "src/{s}", .{entry.name});
-            defer allocator.free(year_dir_path);
+    const exe_unit_tests = b.addTest(.{
+        .root_source_file = b.path("src/main.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
-            const year_dir_realpath = try std.fs.realpathAlloc(allocator, year_dir_path);
-            defer allocator.free(year_dir_realpath);
+    const run_exe_unit_tests = b.addRunArtifact(exe_unit_tests);
 
-            var year_dir = try std.fs.openDirAbsolute(year_dir_realpath, .{ .iterate = true });
-            defer year_dir.close();
-
-            var year_iter = year_dir.iterate();
-            while (try year_iter.next()) |day_entry| {
-                if (day_entry.kind == .file) {
-                    const year = try std.fmt.parseUnsigned(u16, entry.name, 10);
-                    const day_part = std.mem.trimRight(u8, day_entry.name, ".zig");
-                    const day = try std.fmt.parseUnsigned(u8, day_part, 10);
-                    const solution_name = try std.fmt.allocPrint(allocator, "{s}-{s}", .{ entry.name, day_part });
-                    const solution_test_name = try std.fmt.allocPrint(allocator, "{s}-{s}-test", .{ entry.name, day_part });
-                    const path = try std.fmt.allocPrint(allocator, "src/{s}/{s}", .{ entry.name, day_entry.name });
-                    try solutions.append(.{
-                        .year = year,
-                        .day = day,
-                        .solution_name = solution_name,
-                        .solution_test_name = solution_test_name,
-                        .relative_path = path,
-                    });
-                }
-            }
-        }
-    }
-
-    const utils = b.createModule(.{ .root_source_file = .{ .path = "src/utils.zig" } });
-
-    for (solutions.items) |solution| {
-        // std.debug.print("{d} {d} {s} {s}\n", solution);
-        const exe = b.addExecutable(.{
-            .name = solution.solution_name,
-            .root_source_file = .{ .path = solution.relative_path },
-            .target = target,
-            .optimize = optimize,
-        });
-
-        exe.root_module.addImport("utils", utils);
-
-        // for (packages) |package| {
-        //     exe.addPackagePath(package.name, package.path);
-        // }
-
-        b.installArtifact(exe);
-
-        const run_cmd = b.addRunArtifact(exe);
-        run_cmd.step.dependOn(b.getInstallStep());
-        if (b.args) |args| {
-            run_cmd.addArgs(args);
-        }
-
-        const run_step = b.step(solution.solution_name, solution.solution_name);
-        run_step.dependOn(&run_cmd.step);
-
-        const exe_tests = b.addTest(.{
-            .root_source_file = .{ .path = solution.relative_path },
-            .target = target,
-            .optimize = optimize,
-        });
-
-        exe_tests.root_module.addImport("utils", utils);
-
-        const run_exe_tests = b.addRunArtifact(exe_tests);
-
-        const one_test_step = b.step(solution.solution_test_name, "Run unit tests");
-        one_test_step.dependOn(&run_exe_tests.step);
-        try tests.append(&run_exe_tests.step);
-    }
-
-    const test_step = b.step("all-tests", "Run all unit tests");
-    for (tests.items) |exe_test| {
-        test_step.dependOn(exe_test);
-    }
-
-    // permute tests
-    // for (packages) |package| {
-    //     if (!package.tests) continue;
-    //     const package_test = b.addTest(package.path);
-    //     for (packages) |sub_package| {
-    //         // if (package.name == sub_package.name) continue;
-    //         package_test.addPackagePath(sub_package.name, sub_package.path);
-    //     }
-    //     package_test.setTarget(target);
-    //     package_test.setBuildOptimize(optimize);
-
-    //     const pts_name = try std.fmt.allocPrint(allocator, "{s}-test", .{package.name});
-    //     const pts_desc = try std.fmt.allocPrint(allocator, "{s}-test", .{package.name});
-    //     defer allocator.free(pts_name);
-    //     defer allocator.free(pts_desc);
-
-    //     const package_test_step = b.step(pts_name, pts_desc);
-    //     package_test_step.dependOn(&package_test.step);
-    // }
+    // Similar to creating the run step earlier, this exposes a `test` step to
+    // the `zig build --help` menu, providing a way for the user to request
+    // running the unit tests.
+    const test_step = b.step("test", "Run unit tests");
+    test_step.dependOn(&run_lib_unit_tests.step);
+    test_step.dependOn(&run_exe_unit_tests.step);
 }
