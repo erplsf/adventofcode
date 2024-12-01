@@ -9,8 +9,8 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
     var right_numbers = std.ArrayList(usize).init(allocator);
     defer right_numbers.deinit();
 
-    var numbers_map = std.AutoHashMap(usize, usize).init(allocator);
-    defer numbers_map.deinit();
+    var counts = std.AutoHashMap(usize, usize).init(allocator);
+    defer counts.deinit();
 
     while (lines_it.next()) |line| {
         var parts_it = std.mem.tokenizeScalar(u8, line, ' ');
@@ -18,7 +18,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
         const left_number = try std.fmt.parseUnsigned(usize, parts_it.next().?, 10);
         const right_number = try std.fmt.parseUnsigned(usize, parts_it.next().?, 10);
 
-        const entry = try numbers_map.getOrPutValue(right_number, 0);
+        const entry = try counts.getOrPutValue(right_number, 0);
         entry.value_ptr.* += 1;
 
         try left_numbers.append(left_number);
@@ -41,9 +41,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
         const diff: usize = @abs(@as(isize, @intCast(left)) - @as(isize, @intCast(right)));
         diff_sum += diff;
 
-        const maybe_entry = numbers_map.getEntry(left);
-
-        if (maybe_entry) |entry| {
+        if (counts.getEntry(left)) |entry| {
             similarity_sum += left * entry.value_ptr.*;
         }
     }
