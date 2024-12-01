@@ -9,13 +9,20 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
     var right_numbers = std.ArrayList(usize).init(allocator);
     defer right_numbers.deinit();
 
+    var numbers_map = std.AutoHashMap(usize, usize).init(allocator);
+    defer numbers_map.deinit();
+
     while (lines_it.next()) |line| {
         var parts_it = std.mem.tokenizeScalar(u8, line, ' ');
-        const left_number = parts_it.next().?;
-        const right_number = parts_it.next().?;
 
-        try left_numbers.append(try std.fmt.parseUnsigned(usize, left_number, 10));
-        try right_numbers.append(try std.fmt.parseUnsigned(usize, right_number, 10));
+        const left_number = try std.fmt.parseUnsigned(usize, parts_it.next().?, 10);
+        const right_number = try std.fmt.parseUnsigned(usize, parts_it.next().?, 10);
+
+        const entry = try numbers_map.getOrPutValue(right_number, 0);
+        entry.value_ptr.* += 1;
+
+        try left_numbers.append(left_number);
+        try right_numbers.append(right_number);
     }
 
     const sort_func = std.sort.asc(usize);
@@ -25,13 +32,23 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
 
     std.debug.assert(left_numbers.items.len == right_numbers.items.len);
 
-    var sum: usize = 0;
+    var diff_sum: usize = 0;
+    var similarity_sum: usize = 0;
     for (0..left_numbers.items.len) |i| {
-        const diff: usize = @abs(@as(isize, @intCast(left_numbers.items[i])) - @as(isize, @intCast(right_numbers.items[i])));
-        sum += diff;
+        const left = left_numbers.items[i];
+        const right = right_numbers.items[i];
+
+        const diff: usize = @abs(@as(isize, @intCast(left)) - @as(isize, @intCast(right)));
+        diff_sum += diff;
+
+        const maybe_entry = numbers_map.getEntry(left);
+
+        if (maybe_entry) |entry| {
+            similarity_sum += left * entry.value_ptr.*;
+        }
     }
 
-    return .{ .p1 = sum, .p2 = 84 };
+    return .{ .p1 = diff_sum, .p2 = similarity_sum };
 }
 
 pub fn main() !void {
@@ -72,5 +89,5 @@ test "simple test" {
     const answers = try solve(std.testing.allocator, input);
 
     try std.testing.expectEqual(@as(usize, 11), answers.p1);
-    // try std.testing.expectEqual(@as(usize, 84), answers.p2);
+    try std.testing.expectEqual(@as(usize, 31), answers.p2);
 }
