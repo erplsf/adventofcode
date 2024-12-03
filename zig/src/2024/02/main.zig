@@ -8,37 +8,22 @@ pub fn p1(allocator: std.mem.Allocator, line: []const u8) !bool {
 }
 
 pub fn is_safe(numbers: []const usize) bool {
-    var i: usize = 0;
-    var prev = numbers[i];
-    i += 1;
-    var next = numbers[i];
-    i += 1;
-
+    var first_run = true;
     var positive: bool = undefined;
-    var diff: isize = @as(isize, @intCast(next)) - @as(isize, @intCast(prev));
 
-    if (diff == 0 or @abs(diff) > 3) {
-        return false;
-    }
-
-    positive = std.math.sign(diff) == 1;
-
-    // std.debug.print("fi: {}, se: {}, di: {}, si: {}\n", .{ prev, next, diff, positive });
-
-    prev = next;
-
-    for (numbers[i..numbers.len]) |numb| {
-        next = numb;
-
-        diff = @as(isize, @intCast(next)) - @as(isize, @intCast(prev));
+    var w_it = std.mem.window(usize, numbers, 2, 1);
+    while (w_it.next()) |chunk| {
+        const prev = chunk[0];
+        const next = chunk[1];
+        const diff: isize = @as(isize, @intCast(next)) - @as(isize, @intCast(prev));
         const now_positive = std.math.sign(diff) == 1;
-        // std.debug.print("fi: {}, se: {}, di: {}\n", .{ prev, next, diff });
-        // std.debug.print("fi: {}, se: {}, di: {}, si: {}\n", .{ prev, next, diff, now_positive });
+        if (first_run) {
+            first_run = false;
+            positive = now_positive;
+        }
         if (diff == 0 or @abs(diff) > 3 or positive != now_positive) {
             return false;
         }
-
-        prev = next;
     }
 
     return true;
