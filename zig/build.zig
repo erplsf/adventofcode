@@ -6,6 +6,7 @@ const files = &[_][]const u8{
     "2024/03",
     "2024/04",
     "2024/05",
+    "2024/06",
 };
 
 // Although this function looks imperative, note that its job is to
