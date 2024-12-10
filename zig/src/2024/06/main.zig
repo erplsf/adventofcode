@@ -1,13 +1,44 @@
 const std = @import("std");
 
+const Wall = struct {
+    x: usize,
+    y: usize,
+};
+
+const Direction = enum { Up, Down, Left, Right };
+
 pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usize, p2: usize } {
-    _ = allocator; // autofix
     var line_it = std.mem.splitScalar(u8, input, '\n');
 
+    var walls = std.ArrayListUnmanaged(Wall){};
+    defer walls.deinit(allocator);
+
+    var y: usize = 0;
+    var x: usize = 0;
+    var px: usize = undefined;
+    var py: usize = undefined;
+    var pd: Direction = undefined;
     while (line_it.next()) |line| {
-        _ = line; // autofix
+        for (line) |char| {
+            if (char == '#') {
+                try walls.append(allocator, .{ .x = x, .y = y });
+            } else if (char == '>' or char == 'v' or char == '<' or char == '^') {
+                switch (char) {
+                    '>' => pd = .Right,
+                    'v' => pd = .Down,
+                    '<' => pd = .Left,
+                    '^' => pd = .Up,
+                    else => unreachable,
+                }
+                px = x;
+                py = y;
+            }
+            x += 1;
+        }
+        y += 1;
     }
 
+    std.debug.print("walls: {any}\n", .{walls.items});
     return .{ .p1 = 0, .p2 = 0 };
 }
 
