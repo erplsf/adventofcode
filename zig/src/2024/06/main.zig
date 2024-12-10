@@ -1,11 +1,70 @@
 const std = @import("std");
 
-const Wall = struct {
+const Comparison = enum { Less, Greater };
+
+const Position = struct {
     x: usize,
     y: usize,
+
+    pub fn generateCompFn(
+        comptime field: []const u8,
+        comptime comp: Comparison,
+    ) fn (void, Position, Position) bool {
+        return struct {
+            fn compare(context: void, a: Position, b: Position) bool {
+                _ = context;
+                return switch (comp) {
+                    .Less => @field(a, field) < @field(b, field),
+                    .Greater => @field(b, field) > @field(b, field),
+                };
+            }
+        }.compare;
+    }
+};
+
+const Wall = struct {
+    pos: Position,
 };
 
 const Direction = enum { Up, Down, Left, Right };
+
+fn findNextWall(allocator: std.mem.Allocator, p_pos: Position, direction: Direction, walls: []const Wall) !?Position {
+    var matching_walls = std.ArrayListUnmanaged(Position){};
+    defer matching_walls.deinit(allocator);
+
+    for (walls) |wall| {
+        switch (direction) {
+            .Right => if (wall.pos.x > p_pos.x) try matching_walls.append(allocator, wall.pos),
+            .Down => if (wall.pos.y > p_pos.y) try matching_walls.append(allocator, wall.pos),
+            .Left => if (wall.pos.x < p_pos.x) try matching_walls.append(allocator, wall.pos),
+            .Up => if (wall.pos.y < p_pos.y) try matching_walls.append(allocator, wall.pos),
+        }
+    }
+
+    if (matching_walls.items.len > 0) {
+        // FIXME: would be nice to have it more generic, but it didn't work out last time: https://discord.com/channels/605571803288698900/1316103959953539153
+        return blk: switch (direction) {
+            .Right => {
+                const compFn = Position.generateCompFn("x", .Less);
+                break :blk std.sort.min(Position, matching_walls.items, {}, compFn);
+            },
+            .Down => {
+                const compFn = Position.generateCompFn("y", .Less);
+                break :blk std.sort.min(Position, matching_walls.items, {}, compFn);
+            },
+            .Left => {
+                const compFn = Position.generateCompFn("x", .Greater);
+                break :blk std.sort.max(Position, matching_walls.items, {}, compFn);
+            },
+            .Up => {
+                const compFn = Position.generateCompFn("y", .Greater);
+                break :blk std.sort.max(Position, matching_walls.items, {}, compFn);
+            },
+        };
+    } else {
+        return null;
+    }
+}
 
 pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usize, p2: usize } {
     var line_it = std.mem.splitScalar(u8, input, '\n');
@@ -21,7 +80,7 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
     while (line_it.next()) |line| {
         for (line) |char| {
             if (char == '#') {
-                try walls.append(allocator, .{ .x = x, .y = y });
+                try walls.append(allocator, .{ .pos = .{ .x = x, .y = y } });
             } else if (char == '>' or char == 'v' or char == '<' or char == '^') {
                 switch (char) {
                     '>' => pd = .Right,
@@ -39,6 +98,10 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
     }
 
     std.debug.print("walls: {any}\n", .{walls.items});
+
+    const wall = try findNextWall(allocator, .{ .x = px, .y = py }, pd, walls.items);
+    std.debug.print("wall: {?}\n", .{wall});
+
     return .{ .p1 = 0, .p2 = 0 };
 }
 
