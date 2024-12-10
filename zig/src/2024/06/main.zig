@@ -43,6 +43,7 @@ fn findNextWall(allocator: std.mem.Allocator, p_pos: Position, direction: Direct
 
     if (matching_walls.items.len > 0) {
         // FIXME: would be nice to have it more generic, but it didn't work out last time: https://discord.com/channels/605571803288698900/1316103959953539153
+        // FIXME: somehow it finds wrong walls?
         return blk: switch (direction) {
             .Right => {
                 const compFn = Position.generateCompFn("x", .Less);
@@ -66,11 +67,39 @@ fn findNextWall(allocator: std.mem.Allocator, p_pos: Position, direction: Direct
     }
 }
 
+const Segment = struct {
+    start_pos: Position,
+    end_pos: Position,
+    length: usize,
+
+    pub fn distance(a: Position, b: Position) usize {
+        return @max(a.x, b.x) - @min(a.x, b.x) + @max(a.y, b.y) - @min(a.y, b.y);
+    }
+};
+
+fn calculateSegment(p_pos: Position, direction: Direction, w_pos: Position) Segment {
+    const end_pos: Position = switch (direction) {
+        .Right => .{ .x = w_pos.x - 1, .y = w_pos.y },
+        .Down => .{ .x = w_pos.x, .y = w_pos.y - 1 },
+        .Left => .{ .x = w_pos.x + 1, .y = w_pos.y },
+        .Up => .{ .x = w_pos.x, .y = w_pos.y + 1 },
+    };
+    const length: usize = Segment.distance(p_pos, end_pos);
+    return .{
+        .start_pos = p_pos,
+        .end_pos = end_pos,
+        .length = length,
+    };
+}
+
 pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usize, p2: usize } {
     var line_it = std.mem.splitScalar(u8, input, '\n');
 
     var walls = std.ArrayListUnmanaged(Wall){};
     defer walls.deinit(allocator);
+
+    var segments = std.ArrayListUnmanaged(Segment){};
+    defer segments.deinit(allocator);
 
     var y: usize = 0;
     var x: usize = 0;
@@ -94,13 +123,39 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
             }
             x += 1;
         }
+        x = 0;
         y += 1;
     }
 
     std.debug.print("walls: {any}\n", .{walls.items});
 
-    const wall = try findNextWall(allocator, .{ .x = px, .y = py }, pd, walls.items);
-    std.debug.print("wall: {?}\n", .{wall});
+    var maybe_next_wall: ?Position = undefined;
+    while (true) {
+        maybe_next_wall = try findNextWall(allocator, .{ .x = px, .y = py }, pd, walls.items);
+        const end_pos: Position = switch (pd) {
+            .Right => .{ .x = x, .y = py },
+            .Down => .{ .x = px, .y = y },
+            .Left => .{ .x = 0, .y = py },
+            .Up => .{ .x = px, .y = 0 },
+        };
+        const walked_segment: Segment = if (maybe_next_wall) |wall|
+            calculateSegment(.{ .x = px, .y = py }, pd, wall)
+        else
+            Segment{ .start_pos = .{ .x = px, .y = py }, .end_pos = end_pos, .length = Segment.distance(.{ .x = px, .y = py }, end_pos) };
+        try segments.append(allocator, walked_segment);
+
+        pd = switch (pd) {
+            .Right => .Down,
+            .Down => .Left,
+            .Left => .Up,
+            .Up => .Right,
+        };
+        px = walked_segment.end_pos.x;
+        py = walked_segment.end_pos.y;
+
+        if (maybe_next_wall == null) break;
+    }
+    std.debug.print("segments: {any}\n", .{segments.items});
 
     return .{ .p1 = 0, .p2 = 0 };
 }
