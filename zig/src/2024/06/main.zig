@@ -2,6 +2,10 @@ const std = @import("std");
 
 const Comparison = enum { Less, Greater };
 
+pub inline fn diff(a: usize, b: usize) usize {
+    return @max(a, b) - @min(a, b);
+}
+
 const Position = struct {
     x: usize,
     y: usize,
@@ -34,37 +38,28 @@ fn findNextWall(allocator: std.mem.Allocator, p_pos: Position, direction: Direct
 
     for (walls) |wall| {
         switch (direction) {
-            .Right => if (wall.pos.x > p_pos.x) try matching_walls.append(allocator, wall.pos),
-            .Down => if (wall.pos.y > p_pos.y) try matching_walls.append(allocator, wall.pos),
-            .Left => if (wall.pos.x < p_pos.x) try matching_walls.append(allocator, wall.pos),
-            .Up => if (wall.pos.y < p_pos.y) try matching_walls.append(allocator, wall.pos),
+            .Right => if (wall.pos.x > p_pos.x and wall.pos.y == p_pos.y) try matching_walls.append(allocator, wall.pos),
+            .Down => if (wall.pos.y > p_pos.y and wall.pos.x == p_pos.x) try matching_walls.append(allocator, wall.pos),
+            .Left => if (wall.pos.x < p_pos.x and wall.pos.y == p_pos.y) try matching_walls.append(allocator, wall.pos),
+            .Up => if (wall.pos.y < p_pos.y and wall.pos.x == p_pos.x) try matching_walls.append(allocator, wall.pos),
         }
     }
 
+    const compFn = Position.generateCompFn("x", .Less);
+
     if (matching_walls.items.len > 0) {
         // FIXME: would be nice to have it more generic, but it didn't work out last time: https://discord.com/channels/605571803288698900/1316103959953539153
-        // FIXME: somehow it finds wrong walls?
-        return blk: switch (direction) {
-            .Right => {
-                const compFn = Position.generateCompFn("x", .Less);
-                break :blk std.sort.min(Position, matching_walls.items, {}, compFn);
-            },
-            .Down => {
-                const compFn = Position.generateCompFn("y", .Less);
-                break :blk std.sort.min(Position, matching_walls.items, {}, compFn);
-            },
-            .Left => {
-                const compFn = Position.generateCompFn("x", .Greater);
-                break :blk std.sort.max(Position, matching_walls.items, {}, compFn);
-            },
-            .Up => {
-                const compFn = Position.generateCompFn("y", .Greater);
-                break :blk std.sort.max(Position, matching_walls.items, {}, compFn);
-            },
+        return switch (direction) {
+            .Right, .Down => std.sort.min(Position, matching_walls.items, {}, compFn),
+            .Left, .Up => std.sort.max(Position, matching_walls.items, {}, compFn),
         };
     } else {
         return null;
     }
+}
+
+pub inline fn isizyfy(v: usize) isize {
+    return @as(isize, @intCast(v));
 }
 
 const Segment = struct {
@@ -74,6 +69,38 @@ const Segment = struct {
 
     pub fn distance(a: Position, b: Position) usize {
         return @max(a.x, b.x) - @min(a.x, b.x) + @max(a.y, b.y) - @min(a.y, b.y);
+    }
+
+    fn ccw(a: Position, b: Position, c: Position) bool {
+        return ((isizyfy(c.y) - isizyfy(a.y)) * (isizyfy(b.x) - isizyfy(a.x))) > ((isizyfy(b.y) - isizyfy(a.y)) * (isizyfy(c.x) - isizyfy(a.x)));
+    }
+
+    pub fn intersects(a: Segment, b: Segment) bool {
+        return ccw(a.start_pos, b.start_pos, b.end_pos) != ccw(a.end_pos, b.start_pos, b.end_pos) and ccw(a.start_pos, a.end_pos, b.start_pos) != ccw(a.start_pos, a.end_pos, b.end_pos);
+        // const s_1: isize = @as(isize, @intCast(a.end_pos.x)) - @as(isize, @intCast(a.start_pos.x));
+        // const t_1: isize = @as(isize, @intCast(b.end_pos.x)) - @as(isize, @intCast(b.start_pos.x));
+
+        // const s_2: isize = @as(isize, @intCast(a.end_pos.y)) - @as(isize, @intCast(a.start_pos.y));
+        // const t_2: isize = @as(isize, @intCast(b.end_pos.y)) - @as(isize, @intCast(b.end_pos.y));
+
+        // // const c_1: isize = @as(isize, @intCast(b.start_pos.x)) - @as(isize, @intCast(a.start_pos.x));
+        // // const c_2: isize = @as(isize, @intCast(b.start_pos.y)) - @as(isize, @intCast(a.start_pos.y));
+
+        // const d: isize = s_1 * t_2 - t_1 * s_2;
+        // if (d == 0) return false else return true;
+
+        // // const ds: isize = c_1 * t_2 - t_1 * c_2;
+        // // const dt: isize = s_1 * c_2 - c_1 * s_2;
+
+        // // std.debug.print("s_1: {}, t_1: {}\n", .{ s_1, t_1 });
+        // // std.debug.print("d: {}, ds: {}, dt: {}\n", .{ d, ds, dt });
+
+        // // const s: f32 = @as(f32, @floatFromInt(ds)) / @as(f32, @floatFromInt(d));
+        // // const t: f32 = @as(f32, @floatFromInt(dt)) / @as(f32, @floatFromInt(d));
+
+        // // std.debug.print("s: {}, t: {}\n", .{ s, t });
+
+        // // return false;
     }
 };
 
@@ -106,7 +133,10 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
     var px: usize = undefined;
     var py: usize = undefined;
     var pd: Direction = undefined;
+    var mx: usize = 0;
+    var my: usize = 0;
     while (line_it.next()) |line| {
+        mx = line.len - 1;
         for (line) |char| {
             if (char == '#') {
                 try walls.append(allocator, .{ .pos = .{ .x = x, .y = y } });
@@ -127,14 +157,18 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
         y += 1;
     }
 
-    std.debug.print("walls: {any}\n", .{walls.items});
+    my = y - 1;
+    // std.debug.print("mx: {}, my: {}\n", .{ mx, my });
+    // account for max
+
+    // std.debug.print("walls: {any}\n", .{walls.items});
 
     var maybe_next_wall: ?Position = undefined;
     while (true) {
         maybe_next_wall = try findNextWall(allocator, .{ .x = px, .y = py }, pd, walls.items);
         const end_pos: Position = switch (pd) {
-            .Right => .{ .x = x, .y = py },
-            .Down => .{ .x = px, .y = y },
+            .Right => .{ .x = mx, .y = py },
+            .Down => .{ .x = px, .y = my },
             .Left => .{ .x = 0, .y = py },
             .Up => .{ .x = px, .y = 0 },
         };
@@ -157,7 +191,57 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
     }
     std.debug.print("segments: {any}\n", .{segments.items});
 
-    return .{ .p1 = 0, .p2 = 0 };
+    var horizontal = std.ArrayListUnmanaged(Segment){};
+    defer horizontal.deinit(allocator);
+
+    var vertical = std.ArrayListUnmanaged(Segment){};
+    defer vertical.deinit(allocator);
+
+    // for (segments.items) |segment| {
+    //     total_length += segment.length;
+    //     if (segment.start_pos.y == segment.end_pos.y) {
+    //         try horizontal.append(allocator, segment);
+    //     } else if (segment.start_pos.x == segment.end_pos.x) {
+    //         try vertical.append(allocator, segment);
+    //     } else unreachable;
+    // }
+
+    // for (horizontal.items) |h_segment| {
+    //     for (vertical.items) |v_segment| {
+    //         if (Segment.intersects(h_segment, v_segment)) {
+    //             std.debug.print("a: {}, b: {}\n", .{ h_segment, v_segment });
+    //             std.debug.print("intersects!\n", .{});
+    //             // total_length -= 1;
+    //         }
+    //     }
+    // }
+
+    var set = std.AutoHashMapUnmanaged(Position, void){};
+    defer set.deinit(allocator);
+
+    for (segments.items) |segment| {
+        var a: usize = undefined;
+        var b: usize = undefined;
+
+        if (segment.start_pos.y == segment.end_pos.y) {
+            a = @min(segment.start_pos.x, segment.end_pos.x);
+            b = @max(segment.start_pos.x, segment.end_pos.x);
+
+            for (a..b + 1) |i| {
+                try set.put(allocator, .{ .x = i, .y = segment.start_pos.y }, {});
+            }
+        } else if (segment.start_pos.x == segment.end_pos.x) {
+            a = @min(segment.start_pos.y, segment.end_pos.y);
+            b = @max(segment.start_pos.y, segment.end_pos.y);
+
+            for (a..b + 1) |i| {
+                try set.put(allocator, .{ .x = segment.start_pos.x, .y = i }, {});
+            }
+        } else unreachable;
+    }
+    const total_length: usize = set.count();
+
+    return .{ .p1 = total_length, .p2 = 0 };
 }
 
 pub fn main() !void {
