@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const IT_COUNT = 2_000;
+const DIFF_COUNT = IT_COUNT - 1;
 
 pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usize, p2: usize } {
     var line_it = std.mem.tokenizeScalar(u8, input, '\n');
@@ -25,6 +26,10 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
     while (line_it.next()) |line| {
         var digits: []u4 = try allocator.alloc(u4, IT_COUNT);
         try digits_array.append(allocator, digits);
+
+        var diffs: []i5 = try allocator.alloc(i5, DIFF_COUNT);
+        try diff_array.append(allocator, diffs);
+
         var result = try std.fmt.parseUnsigned(usize, line, 10);
         var rd: u4 = @as(u4, @intCast(result % 10));
         for (0..IT_COUNT) |i| {
@@ -32,9 +37,9 @@ pub fn solve(allocator: std.mem.Allocator, input: []const u8) !struct { p1: usiz
             const next_number = nextNumber(result);
             const nd: u4 = @as(u4, @intCast(next_number % 10));
             const d: i5 = @as(i5, @intCast(nd)) - @as(i5, @intCast(rd));
-            _ = d; // autofix
             result = next_number;
             rd = nd;
+            diffs[i] = d;
         }
         sum += result;
     }
