@@ -4,25 +4,37 @@
     zig-overlay = {
       url = "github:mitchellh/zig-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-utils.follows = "flake-utils";
     };
     zls = {
       url = "github:zigtools/zls";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.zig-overlay.follows = "zig-overlay";
     };
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, zig-overlay, zls }@inputs:
-    let
-      system = "x86_64-linux";
-      pkgs = import nixpkgs { inherit system; };
-    in {
-      devShells.${system}.default = pkgs.mkShell {
-        buildInputs = with pkgs; [
-          zls.packages.${system}.default
-          zig-overlay.packages.${system}.master
-          hyperfine
-        ];
-      };
-    };
+  outputs =
+    {
+      self,
+      nixpkgs,
+      zig-overlay,
+      zls,
+      flake-utils,
+    }@inputs:
+    (flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+      in
+      {
+        devShells.default = pkgs.mkShell {
+          packages = with pkgs; [
+            zls.packages.${system}.default
+            zig-overlay.packages.${system}.master
+            hyperfine
+          ];
+        };
+      }
+    ));
 }
