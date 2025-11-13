@@ -9,7 +9,7 @@
     zls = {
       url = "github:zigtools/zls";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.zig-overlay.follows = "zig-overlay";
+      # inputs.zig-overlay.follows = "zig-overlay"; # NOTE: it often breaks zls because it lags behind zig master branch
     };
     flake-utils.url = "github:numtide/flake-utils";
   };
