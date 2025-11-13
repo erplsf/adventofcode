@@ -153,4 +153,33 @@ pub fn build(b: *std.Build) void {
     //
     // Lastly, the Zig build system is relatively simple and self-contained,
     // and reading its source code will allow you to master it.
+
+    // zls Build-On-Save feature - https://zigtools.org/zls/guides/build-on-save/
+    const exe_check = b.addExecutable(.{
+        .name = "zig",
+        .root_module = b.createModule(.{
+            // b.createModule defines a new module just like b.addModule but,
+            // unlike b.addModule, it does not expose the module to consumers of
+            // this package, which is why in this case we don't have to give it a name.
+            .root_source_file = b.path("src/main.zig"),
+            // Target and optimization levels must be explicitly wired in when
+            // defining an executable or library (in the root module), and you
+            // can also hardcode a specific target for an executable or library
+            // definition if desireable (e.g. firmware for embedded devices).
+            .target = target,
+            .optimize = optimize,
+            // List of modules available for import in source files part of the
+            // root module.
+            .imports = &.{
+                // Here "zig" is the name you will use in your source code to
+                // import this module (e.g. `@import("zig")`). The name is
+                // repeated because you are allowed to rename your imports, which
+                // can be extremely useful in case of collisions (which can happen
+                // importing modules from different packages).
+                .{ .name = "zig", .module = mod },
+            },
+        }),
+    });
+    const check = b.step("check", "Check if it compiles");
+    check.dependOn(&exe_check.step);
 }
