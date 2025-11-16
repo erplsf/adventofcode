@@ -74,7 +74,7 @@ pub fn build(b: *std.Build) !void {
     // don't need and to put everything under a single module.
 
     // A top level step for running all tests.
-    const test_step = b.step("test", "Run all tests");
+    const all_tests_step = b.step("test", "Run all tests");
 
     inline for (files, 0..) |file, i| {
         const filename = std.fmt.comptimePrint("src/{d}/{d}.zig", .{ file.year, file.day });
@@ -144,12 +144,18 @@ pub fn build(b: *std.Build) !void {
             .root_module = exe.root_module,
         });
 
+        const test_step_name = std.fmt.comptimePrint(step_pattern, .{ "test", exe_name });
+        const test_step_description = std.fmt.comptimePrint(step_pattern, .{ "Test", exe_name });
+        const test_step = b.step(test_step_name, test_step_description);
+
         // A run step that will run the test executable.
         const run_exe_tests = b.addRunArtifact(exe_tests);
 
+        test_step.dependOn(&run_exe_tests.step);
+
         // dependOn can be called multiple times and since the two run steps do not depend on one another, this will
         // make the two of them run in parallel.
-        test_step.dependOn(&run_exe_tests.step);
+        all_tests_step.dependOn(&run_exe_tests.step);
     }
 
     // // Just like flags, top level steps are also listed in the `--help` menu.
