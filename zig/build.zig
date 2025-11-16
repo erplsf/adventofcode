@@ -11,9 +11,7 @@ const files = [_]Structure{
     .{ .year = 2015, .day = 1 },
 };
 
-var exes: [files.len]*std.Build.Step.Compile = undefined;
-
-// TODO: create "substeps" as "run/test <name>"
+// var exes: [files.len]*std.Build.Step.Compile = undefined;
 
 // Although this function looks imperative, it does not perform the build
 // directly and instead it mutates the build graph (`b`) that will be then
@@ -77,6 +75,7 @@ pub fn build(b: *std.Build) !void {
     const all_tests_step = b.step("test", "Run all tests");
 
     inline for (files, 0..) |file, i| {
+        _ = i;
         const filename = std.fmt.comptimePrint("src/{d}/{d}.zig", .{ file.year, file.day });
         const exe_name = std.fmt.comptimePrint("{d}-{d}", .{ file.year, file.day });
 
@@ -106,7 +105,7 @@ pub fn build(b: *std.Build) !void {
             }),
         });
 
-        exes[i] = exe;
+        // exes[i] = exe;
 
         // This declares intent for the executable to be installed into the
         // install prefix when running `zig build` (i.e. when executing the default
