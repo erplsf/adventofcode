@@ -5,6 +5,8 @@ const Structure = struct {
     day: u5,
 };
 
+const step_pattern = "{s} {s}";
+
 const files = [_]Structure{
     .{ .year = 2015, .day = 1 },
 };
@@ -115,7 +117,9 @@ pub fn build(b: *std.Build) !void {
         // or if another step depends on it, so it's up to you to define when and
         // how this Run step will be executed. In our case we want to run it when
         // the user runs `zig build run`, so we create a dependency link.
-        const run_step = b.step(exe_name, exe_name);
+        const exe_step_name = std.fmt.comptimePrint(step_pattern, .{ "run", exe_name });
+        const exe_step_description = std.fmt.comptimePrint(step_pattern, .{ "Run", exe_name });
+        const run_step = b.step(exe_step_name, exe_step_description);
 
         const run_cmd = b.addRunArtifact(exe);
         run_step.dependOn(&run_cmd.step);
@@ -126,9 +130,9 @@ pub fn build(b: *std.Build) !void {
 
         // This allows the user to pass arguments to the application in the build
         // command itself, like this: `zig build run -- arg1 arg2 etc`
-        // if (b.args) |args| {
-        //     run_cmd.addArgs(args);
-        // }
+        if (b.args) |args| {
+            run_cmd.addArgs(args);
+        }
     }
 
     // // Creates an executable that will run `test` blocks from the provided module.
