@@ -1,7 +1,0 @@
-/target
-*-test
-
-a.out
-
-/inputs/*
-!/inputs/.gitkeep
