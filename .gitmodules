@@ -1,3 +1,0 @@
-[submodule "cpp/CPM.cmake"]
-	path = cpp/CPM.cmake
-	url = git@github.com:cpm-cmake/CPM.cmake.git
