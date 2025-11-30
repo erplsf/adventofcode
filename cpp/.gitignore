@@ -1,9 +1,0 @@
-.DS_Store
-.idea
-*.log
-tmp/
-
-build/
-.cache/
-
-CPM.cmake/
